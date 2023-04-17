@@ -1,6 +1,6 @@
 from typing import Tuple
 
-import numpy as np  # type: ignore
+import numpy as np
 
 # Tile graphics structured type compatible with Console.tiles_rgb.
 graphic_dt = np.dtype(

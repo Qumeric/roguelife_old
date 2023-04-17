@@ -124,7 +124,7 @@ class HealingConsumable(Consumable):
             )
             self.consume()
         else:
-            raise Impossible(f"Your health is already full.")
+            raise Impossible("Your health is already full.")
 
 
 class LightningDamageConsumable(Consumable):
