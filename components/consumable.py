@@ -45,7 +45,6 @@ class ConfusionConsumable(Consumable):
         self.number_of_turns = number_of_turns
 
     def get_action(self, consumer: Actor) -> SingleRangedAttackHandler:
-        self.engine.message_log.add_message("Select a target location.", color.needs_target)
         return SingleRangedAttackHandler(
             self.engine,
             callback=lambda xy: actions.ItemAction(consumer, self.parent, xy),
@@ -62,7 +61,8 @@ class ConfusionConsumable(Consumable):
         if target is consumer:
             raise Impossible("You cannot confuse yourself!")
 
-        self.engine.message_log.add_message(
+        # TODO change to event
+        self.add_observation(
             f"The eyes of the {target.name} look vacant, as it starts to stumble around!",
             color.status_effect_applied,
         )
@@ -80,7 +80,6 @@ class FireballDamageConsumable(Consumable):
         self.radius = radius
 
     def get_action(self, consumer: Actor) -> AreaRangedAttackHandler:
-        self.engine.message_log.add_message("Select a target location.", color.needs_target)
         return AreaRangedAttackHandler(
             self.engine,
             radius=self.radius,
@@ -96,9 +95,8 @@ class FireballDamageConsumable(Consumable):
         targets_hit = False
         for actor in self.engine.game_map.actors:
             if actor.distance(*target_xy) <= self.radius:
-                self.engine.message_log.add_message(
-                    f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!"
-                )
+                # TODO change to event
+                self.add_observation(f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!")
                 actor.fighter.take_damage(self.damage)
                 targets_hit = True
 
@@ -113,16 +111,12 @@ class HealingConsumable(Consumable):
 
     def activate(self, action: actions.ItemAction) -> None:
         consumer = action.entity
-        amount_recovered = consumer.fighter.heal(self.amount)
 
-        if amount_recovered > 0:
-            self.engine.message_log.add_message(
-                f"You consume the {self.parent.name}, and recover {amount_recovered} HP!",
-                color.health_recovered,
-            )
-            self.consume()
-        else:
-            raise Impossible("Your health is already full.")
+        self.engine.add_observation(
+            f"I consumed the {self.parent.name}",
+            color.health_recovered,
+        )
+        self.consume()
 
 
 class LightningDamageConsumable(Consumable):
@@ -144,7 +138,8 @@ class LightningDamageConsumable(Consumable):
                     closest_distance = distance
 
         if target:
-            self.engine.message_log.add_message(
+            # TODO change to event
+            self.add_observation(
                 f"A lighting bolt strikes the {target.name} with a loud thunder, for {self.damage} damage!"
             )
             target.fighter.take_damage(self.damage)

@@ -54,7 +54,7 @@ class PickupAction(Action):
                 item.parent = self.entity.inventory
                 inventory.items.append(item)
 
-                self.engine.message_log.add_message(f"You picked up the {item.name}!")
+                self.engine.add_observation(f"I picked up the {item.name}!")
                 return
 
         raise exceptions.Impossible("There is nothing here to pick up.")
@@ -141,10 +141,10 @@ class MeleeAction(ActionWithDirection):
         )
 
         if damage > 0:
-            self.engine.message_log.add_message(f"{attack_desc} for {damage} hit points.", attack_color)
-            target.fighter.hp -= damage
+            self.engine.add_observation(f"{attack_desc} for {damage} hit points.", attack_color)
+            target.fighter.take_damage(damage)
         else:
-            self.engine.message_log.add_message(f"{attack_desc} but does no damage.", attack_color)
+            self.engine.add_observation(f"{attack_desc} but does no damage.", attack_color)
 
 
 class MovementAction(ActionWithDirection):

@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Entity
+    from entity import Entity, Actor
     from game_map import GameMap
+    from components import ObservationLog
 
 
 class BaseComponent:
@@ -18,3 +19,11 @@ class BaseComponent:
     @property
     def engine(self) -> Engine:
         return self.game_map.engine
+
+
+class ActorComponent(BaseComponent):
+    parent: Actor
+
+    @property
+    def observations(self) -> ObservationLog:
+        return self.parent.observation_log

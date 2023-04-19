@@ -142,7 +142,7 @@ class EventHandler(BaseEventHandler):
         try:
             action.perform()
         except exceptions.Impossible as exc:
-            self.engine.message_log.add_message(exc.args[0], color.impossible)
+            self.engine.add_observation(exc.args[0], color.impossible)
             return False  # Skip enemy turn on exceptions.
 
         self.engine.handle_enemy_turns()
@@ -246,7 +246,7 @@ class InventoryEventHandler(AskUserEventHandler):
             try:
                 selected_item = player.inventory.items[index]
             except IndexError:
-                self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                self.engine.add_observation("Invalid entry.", color.invalid)
                 return None
             return self.on_item_selected(selected_item)
         return super().ev_keydown(event)
@@ -400,7 +400,7 @@ class MainGameEventHandler(EventHandler):
         elif key == tcod.event.K_ESCAPE:
             raise SystemExit()
         elif key == tcod.event.K_v:
-            return HistoryViewer(self.engine)
+            return ObservationsLogViewer(self.engine, self.engine.player)
 
         elif key == tcod.event.K_g:
             action = PickupAction(player)
@@ -475,32 +475,6 @@ class TextViewer(EventHandler):
         else:  # Any other key moves back to the main game state.
             return MainGameEventHandler(self.engine)
         return None
-
-
-class HistoryViewer(TextViewer):
-    def __init__(self, engine: Engine):
-        super().__init__(engine)
-        self.log_length = len(engine.message_log.messages)
-        self.cursor = len(engine.game_world.history) - 1  # TODO what is game_world???
-
-    def on_render(self, console: tcod.Console) -> None:
-        super().on_render(console)
-        log_console = tcod.Console(console.width - 6, console.height - 6)
-
-        # Draw a frame with a custom banner title.
-        log_console.draw_frame(0, 0, log_console.width, log_console.height)
-        log_console.print_box(0, 0, log_console.width, 1, f"┤Message History├", alignment=tcod.CENTER)
-
-        # Render the message log using the cursor parameter.
-        self.engine.message_log.render_messages(
-            log_console,
-            1,
-            1,
-            log_console.width - 2,
-            log_console.height - 2,
-            self.engine.message_log.messages[: self.cursor + 1],
-        )
-        log_console.blit(console, 3, 3)
 
 
 class ObservationsLogViewer(TextViewer):

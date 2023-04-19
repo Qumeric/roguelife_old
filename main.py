@@ -44,9 +44,6 @@ def main() -> None:
                         handler = handler.handle_events(event)
                 except Exception:  # Handle exceptions in game.
                     traceback.print_exc()  # Print error to stderr.
-                    # Then print the error to the message log.
-                    if isinstance(handler, input_handlers.EventHandler):
-                        handler.engine.message_log.add_message(traceback.format_exc(), color.error)
         except exceptions.QuitWithoutSaving:
             raise
         except SystemExit:  # Save and quit.

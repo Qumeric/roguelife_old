@@ -48,7 +48,6 @@ def new_game() -> Engine:
     engine.game_map.entities.add(player)
     engine.update_fov()
 
-    engine.message_log.add_message("Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text)
     return engine
 
 

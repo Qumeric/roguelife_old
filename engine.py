@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import color
 import lzma
 import pickle
 from typing import TYPE_CHECKING
@@ -8,7 +9,6 @@ from tcod.console import Console
 from tcod.map import compute_fov
 
 import exceptions
-from message_log import MessageLog
 from render_functions import (
     render_bar,
     render_names_at_mouse_location,
@@ -24,7 +24,6 @@ class Engine:
     game_map: GameMap
 
     def __init__(self, player: Actor):
-        self.message_log = MessageLog()
         self.mouse_location = (0, 0)
         self.player = player
 
@@ -61,7 +60,7 @@ class Engine:
     def render(self, console: Console) -> None:
         self.game_map.render(console)
 
-        self.message_log.render(console=console, x=21, y=45, width=40, height=5)
+        self.player.observation_log.render(console=console, x=21, y=45, width=40, height=5)
 
         render_bar(
             console=console,
@@ -77,3 +76,8 @@ class Engine:
         save_data = lzma.compress(pickle.dumps(self))
         with open(filename, "wb") as f:
             f.write(save_data)
+
+    def add_observation(
+        self, observation: str, fg: Tuple[int, int, int] = color.white, event: Optional[BaseEvent] = None
+    ):
+        self.player.observation_log.add_observation(observation, event)
