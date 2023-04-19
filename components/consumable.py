@@ -62,7 +62,7 @@ class ConfusionConsumable(Consumable):
             raise Impossible("You cannot confuse yourself!")
 
         # TODO change to event
-        self.add_observation(
+        self.engine.add_observation(
             f"The eyes of the {target.name} look vacant, as it starts to stumble around!",
             color.status_effect_applied,
         )

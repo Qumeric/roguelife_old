@@ -5,7 +5,18 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import color
 import exceptions
 
-from events import attack_signal, AttackEvent
+from events import (
+    attack_signal,
+    AttackEvent,
+    pickup_signal,
+    PickupEvent,
+    drop_signal,
+    DropEvent,
+    use_signal,
+    UseEvent,
+    move_signal,
+    MoveEvent,
+)
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -81,6 +92,7 @@ class ItemAction(Action):
 class DropItem(ItemAction):
     def perform(self) -> None:
         self.entity.inventory.drop(self.item)
+        drop_signal.send(DropEvent(self.entity.x, self.entity.y, 10, self.entity, self.item))
 
 
 class WaitAction(Action):
@@ -122,23 +134,22 @@ class MeleeAction(ActionWithDirection):
 
         damage = self.entity.fighter.power - target.fighter.defense
 
-        attack_desc = f"{self.entity.name.capitalize()} attacks {target.name}"
-        if self.entity is self.engine.player:
-            attack_color = color.player_atk
-        else:
-            attack_color = color.enemy_atk
-
         attack_signal.send(
             self,
             event=AttackEvent(
                 self.entity.x,
                 self.entity.y,
                 10,  # TODO use proper time
-                attack_desc,
                 self.entity,
                 target,
             ),
         )
+
+        attack_desc = f"{self.entity.name.capitalize()} attacks {target.name}"
+        if self.entity is self.engine.player:
+            attack_color = color.player_atk
+        else:
+            attack_color = color.enemy_atk
 
         if damage > 0:
             self.engine.add_observation(f"{attack_desc} for {damage} hit points.", attack_color)
@@ -161,6 +172,17 @@ class MovementAction(ActionWithDirection):
             # Destination is blocked by an entity.
             raise exceptions.Impossible("That way is blocked.")
 
+        move_signal.send(
+            self,
+            event=MoveEvent(
+                self.entity.x,
+                self.entity.y,
+                10,  # TODO use proper time
+                self.entity,
+                self.dx,
+                self.dy,
+            ),
+        )
         self.entity.move(self.dx, self.dy)
 
 
@@ -168,6 +190,5 @@ class BumpAction(ActionWithDirection):
     def perform(self) -> None:
         if self.target_actor:
             return MeleeAction(self.entity, self.dx, self.dy).perform()
-
         else:
             return MovementAction(self.entity, self.dx, self.dy).perform()

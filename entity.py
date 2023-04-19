@@ -156,12 +156,12 @@ class Actor(Entity):
             return
         print(f"{self.name} observes {event}")
         match event:
-            case AttackEvent(_, _, _, _, attacker, target):
-                if attacker == self:
+            case AttackEvent(_, _, _, actor, target):
+                if actor == self:
                     self.observation_log.add_observation(f"I attacked {target.full_name}", event)
                 if target == self:
-                    self.observation_log.add_observation(f"I was attacked by {attacker.full_name}", event)
-            case MoveEvent(_, _, _, _, entity, dx, dy):
+                    self.observation_log.add_observation(f"I was attacked by {actor.full_name}", event)
+            case MoveEvent(_, _, _, actor, dx, dy):
                 print(f"{entity} moved by ({dx}, {dy})")
             case _:
                 print("Unknown event type")

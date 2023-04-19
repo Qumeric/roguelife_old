@@ -15,40 +15,44 @@ class BaseEvent:
     x: int
     y: int
     timestamp: int
-    message: str
 
     def __str__(self) -> str:
-        return f"[{self.timestamp}]: {self.message} at ({self.x}, {self.y})"
+        return f"[{self.timestamp}]: Event at ({self.x}, {self.y})"
 
 
 @dataclass
-class AttackEvent(BaseEvent):
-    attacker: Actor
+class ActorEvent(BaseEvent):
+    actor: Actor
+
+
+@dataclass
+class AttackEvent(ActorEvent):
     target: Actor
 
 
 @dataclass
-class PickupEvent(BaseEvent):
-    actor: Actor
+class PickupEvent(ActorEvent):
     item: Actor
 
 
 @dataclass
-class DropEvent(BaseEvent):
-    actor: Actor
+class DropEvent(ActorEvent):
     item: Actor
 
 
 @dataclass
-class UseEvent(BaseEvent):
-    actor: Actor
+class UseEvent(ActorEvent):
     item: Actor
 
 
 @dataclass
-class MoveEvent(BaseEvent):
-    actor: Actor
-    direction: str
+class MoveEvent(ActorEvent):
+    dx: int
+    dy: int
 
 
 attack_signal = Signal("attack")
+pickup_signal = Signal("pickup")
+drop_signal = Signal("drop")
+use_signal = Signal("use")
+move_signal = Signal("move")
