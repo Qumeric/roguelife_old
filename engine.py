@@ -16,6 +16,7 @@ from render_functions import (
 
 if TYPE_CHECKING:
     from entity import Actor
+    from events import Event
     from game_map import GameMap
 
 

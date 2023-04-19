@@ -177,9 +177,7 @@ class AskUserEventHandler(EventHandler):
             return None
         return self.on_exit()
 
-    def ev_mousebuttondown(
-        self, event: tcod.event.MouseButtonDown
-    ) -> Optional[ActionOrHandler]:
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
         """By default any mouse click exits this input handler."""
         return self.on_exit()
 
@@ -319,9 +317,7 @@ class SelectIndexHandler(AskUserEventHandler):
             return self.on_index_selected(*self.engine.mouse_location)
         return super().ev_keydown(event)
 
-    def ev_mousebuttondown(
-        self, event: tcod.event.MouseButtonDown
-    ) -> Optional[ActionOrHandler]:
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
         """Left click confirms a selection."""
         if self.engine.game_map.in_bounds(*event.tile):
             if event.button == 1:
@@ -344,9 +340,7 @@ class LookHandler(SelectIndexHandler):
 class SingleRangedAttackHandler(SelectIndexHandler):
     """Handles targeting a single enemy. Only the enemy selected will be affected."""
 
-    def __init__(
-        self, engine: Engine, callback: Callable[[Tuple[int, int]], Optional[Action]]
-    ):
+    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], Optional[Action]]):
         super().__init__(engine)
 
         self.callback = callback
@@ -379,8 +373,8 @@ class AreaRangedAttackHandler(SelectIndexHandler):
         console.draw_frame(
             x=x - self.radius - 1,
             y=y - self.radius - 1,
-            width=self.radius ** 2,
-            height=self.radius ** 2,
+            width=self.radius**2,
+            height=self.radius**2,
             fg=color.red,
             clear=False,
         )
@@ -460,9 +454,7 @@ class HistoryViewer(EventHandler):
 
         # Draw a frame with a custom banner title.
         log_console.draw_frame(0, 0, log_console.width, log_console.height)
-        log_console.print_box(
-            0, 0, log_console.width, 1, "┤Message history├", alignment=tcod.CENTER
-        )
+        log_console.print_box(0, 0, log_console.width, 1, "┤Message history├", alignment=tcod.CENTER)
 
         # Render the message log using the cursor parameter.
         self.engine.message_log.render_messages(

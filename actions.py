@@ -5,6 +5,8 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import color
 import exceptions
 
+from events import attack_signal, AttackEvent
+
 if TYPE_CHECKING:
     from engine import Engine
     from entity import Actor, Entity, Item
@@ -18,7 +20,7 @@ class Action:
     @property
     def engine(self) -> Engine:
         """Return the engine this action belongs to."""
-        return self.entity.gamemap.engine
+        return self.entity.game_map.engine
 
     def perform(self) -> None:
         """Perform this action with the objects needed to determine its scope.
@@ -59,9 +61,7 @@ class PickupAction(Action):
 
 
 class ItemAction(Action):
-    def __init__(
-        self, entity: Actor, item: Item, target_xy: Optional[Tuple[int, int]] = None
-    ):
+    def __init__(self, entity: Actor, item: Item, target_xy: Optional[Tuple[int, int]] = None):
         super().__init__(entity)
         self.item = item
         if not target_xy:
@@ -128,15 +128,23 @@ class MeleeAction(ActionWithDirection):
         else:
             attack_color = color.enemy_atk
 
+        attack_signal.send(
+            self,
+            event=AttackEvent(
+                self.entity.x,
+                self.entity.y,
+                10,  # TODO use proper time
+                attack_desc,
+                self.entity,
+                target,
+            ),
+        )
+
         if damage > 0:
-            self.engine.message_log.add_message(
-                f"{attack_desc} for {damage} hit points.", attack_color
-            )
+            self.engine.message_log.add_message(f"{attack_desc} for {damage} hit points.", attack_color)
             target.fighter.hp -= damage
         else:
-            self.engine.message_log.add_message(
-                f"{attack_desc} but does no damage.", attack_color
-            )
+            self.engine.message_log.add_message(f"{attack_desc} but does no damage.", attack_color)
 
 
 class MovementAction(ActionWithDirection):

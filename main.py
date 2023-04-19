@@ -20,9 +20,7 @@ def main() -> None:
     screen_width = 80
     screen_height = 50
 
-    tileset = tcod.tileset.load_tilesheet(
-        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
-    )
+    tileset = tcod.tileset.load_tilesheet("dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
 
     handler: input_handlers.BaseEventHandler = setup_game.MainMenu()
 
@@ -30,7 +28,7 @@ def main() -> None:
         columns=screen_width,
         rows=screen_height,
         tileset=tileset,
-        title="Yet Another Roguelike Tutorial",
+        title="Roguelife",
         vsync=True,
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")
@@ -48,9 +46,7 @@ def main() -> None:
                     traceback.print_exc()  # Print error to stderr.
                     # Then print the error to the message log.
                     if isinstance(handler, input_handlers.EventHandler):
-                        handler.engine.message_log.add_message(
-                            traceback.format_exc(), color.error
-                        )
+                        handler.engine.message_log.add_message(traceback.format_exc(), color.error)
         except exceptions.QuitWithoutSaving:
             raise
         except SystemExit:  # Save and quit.

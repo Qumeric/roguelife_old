@@ -5,13 +5,17 @@ import math
 from typing import Optional, Tuple, Type, TypeVar, TYPE_CHECKING, Union
 
 from render_order import RenderOrder
+from events import BaseEvent, AttackEvent, MoveEvent, PickupEvent, UseEvent
 
 if TYPE_CHECKING:
+    from blinker import Signal
     from components.ai import BaseAI
     from components.consumable import Consumable
     from components.fighter import Fighter
     from components.inventory import Inventory
+    from components.inventory import ObservationLog
     from game_map import GameMap
+
 
 T = TypeVar("T", bound="Entity")
 
@@ -47,28 +51,19 @@ class Entity:
             parent.entities.add(self)
 
     @property
-    def gamemap(self) -> GameMap:
-        return self.parent.gamemap
+    def game_map(self) -> GameMap:
+        return self.parent.game_map
 
-    def spawn(self: T, gamemap: GameMap, x: int, y: int) -> T:
-        """Spawn a copy of this instance at the given location."""
-        clone = copy.deepcopy(self)
-        clone.x = x
-        clone.y = y
-        clone.parent = gamemap
-        gamemap.entities.add(clone)
-        return clone
-
-    def place(self, x: int, y: int, gamemap: Optional[GameMap] = None) -> None:
+    def place(self, x: int, y: int, game_map: Optional[GameMap] = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
         self.x = x
         self.y = y
-        if gamemap:
+        if game_map:
             if hasattr(self, "parent"):  # Possibly uninitialized.
-                if self.parent is self.gamemap:
-                    self.gamemap.entities.remove(self)
-            self.parent = gamemap
-            gamemap.entities.add(self)
+                if self.parent is self.game_map:
+                    self.game_map.entities.remove(self)
+            self.parent = game_map
+            game_map.entities.add(self)
 
     def distance(self, x: int, y: int) -> float:
         """
@@ -94,6 +89,8 @@ class Actor(Entity):
         ai_cls: Type[BaseAI],
         fighter: Fighter,
         inventory: Inventory,
+        observation_log: ObservationLog,
+        signals_to_listen: List[Signal],
     ):
         super().__init__(
             x=x,
@@ -113,10 +110,29 @@ class Actor(Entity):
         self.inventory = inventory
         self.inventory.parent = self
 
+        self.observation_log = observation_log
+        self.observation_log.parent = self
+
+        for signal in signals_to_listen:
+            signal.connect(self.handle_event)
+
     @property
     def is_alive(self) -> bool:
         """Returns True as long as this actor can perform actions."""
         return bool(self.ai)
+
+    def handle_event(self, sender, event: BaseEvent):
+        print(f'{self} observes {event}')
+        match event:
+            case AttackEvent(_, _, _, _, attacker, target):
+                if attacker == self:
+                    self.observation_log.add_observation(f"I attacked {target}", event)
+                if target == self:
+                    self.observation_log.add_observation(f"I was attacked by {attacker}", event)
+            case MoveEvent(_, _, _, _, entity, dx, dy):
+                print(f"{entity} moved by ({dx}, {dy})")
+            case _:
+                print("Unknown event type")
 
 
 class Item(Entity):

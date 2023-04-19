@@ -45,9 +45,7 @@ class ConfusionConsumable(Consumable):
         self.number_of_turns = number_of_turns
 
     def get_action(self, consumer: Actor) -> SingleRangedAttackHandler:
-        self.engine.message_log.add_message(
-            "Select a target location.", color.needs_target
-        )
+        self.engine.message_log.add_message("Select a target location.", color.needs_target)
         return SingleRangedAttackHandler(
             self.engine,
             callback=lambda xy: actions.ItemAction(consumer, self.parent, xy),
@@ -69,7 +67,9 @@ class ConfusionConsumable(Consumable):
             color.status_effect_applied,
         )
         target.ai = components.ai.ConfusedEnemy(
-            entity=target, previous_ai=target.ai, turns_remaining=self.number_of_turns,
+            entity=target,
+            previous_ai=target.ai,
+            turns_remaining=self.number_of_turns,
         )
         self.consume()
 
@@ -80,9 +80,7 @@ class FireballDamageConsumable(Consumable):
         self.radius = radius
 
     def get_action(self, consumer: Actor) -> AreaRangedAttackHandler:
-        self.engine.message_log.add_message(
-            "Select a target location.", color.needs_target
-        )
+        self.engine.message_log.add_message("Select a target location.", color.needs_target)
         return AreaRangedAttackHandler(
             self.engine,
             radius=self.radius,
@@ -138,7 +136,7 @@ class LightningDamageConsumable(Consumable):
         closest_distance = self.maximum_range + 1.0
 
         for actor in self.engine.game_map.actors:
-            if actor is not consumer and self.parent.gamemap.visible[actor.x, actor.y]:
+            if actor is not consumer and self.parent.game_map.visible[actor.x, actor.y]:
                 distance = consumer.distance(actor.x, actor.y)
 
                 if distance < closest_distance:

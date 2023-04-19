@@ -22,9 +22,9 @@ class BaseAI(Action):
         If there is no valid path then returns an empty list.
         """
         # Copy the walkable array.
-        cost = np.array(self.entity.gamemap.tiles["walkable"], dtype=np.int8)
+        cost = np.array(self.entity.game_map.tiles["walkable"], dtype=np.int8)
 
-        for entity in self.entity.gamemap.entities:
+        for entity in self.entity.game_map.entities:
             # Check that an enitiy blocks movement and the cost isn't zero (blocking.)
             if entity.blocks_movement and cost[entity.x, entity.y]:
                 # Add to the cost of a blocked position.
@@ -66,7 +66,9 @@ class HostileEnemy(BaseAI):
         if self.path:
             dest_x, dest_y = self.path.pop(0)
             return MovementAction(
-                self.entity, dest_x - self.entity.x, dest_y - self.entity.y,
+                self.entity,
+                dest_x - self.entity.x,
+                dest_y - self.entity.y,
             ).perform()
 
         return WaitAction(self.entity).perform()
@@ -78,9 +80,7 @@ class ConfusedEnemy(BaseAI):
     If an actor occupies a tile it is randomly moving into, it will attack.
     """
 
-    def __init__(
-        self, entity: Actor, previous_ai: Optional[BaseAI], turns_remaining: int
-    ):
+    def __init__(self, entity: Actor, previous_ai: Optional[BaseAI], turns_remaining: int):
         super().__init__(entity)
 
         self.previous_ai = previous_ai
@@ -89,9 +89,7 @@ class ConfusedEnemy(BaseAI):
     def perform(self) -> None:
         # Revert the AI back to the original state if the effect has run its course.
         if self.turns_remaining <= 0:
-            self.engine.message_log.add_message(
-                f"The {self.entity.name} is no longer confused."
-            )
+            self.engine.message_log.add_message(f"The {self.entity.name} is no longer confused.")
             self.entity.ai = self.previous_ai
         else:
             # Pick a random direction
@@ -112,4 +110,8 @@ class ConfusedEnemy(BaseAI):
 
             # The actor will either try to move or attack in the chosen random direction.
             # Its possible the actor will just bump into the wall, wasting a turn.
-            return BumpAction(self.entity, direction_x, direction_y,).perform()
+            return BumpAction(
+                self.entity,
+                direction_x,
+                direction_y,
+            ).perform()

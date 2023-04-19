@@ -32,7 +32,7 @@ def new_game() -> Engine:
     max_monsters_per_room = 2
     max_items_per_room = 2
 
-    player = copy.deepcopy(entity_factories.player)
+    player = entity_factories.create_player()
 
     engine = Engine(player=player)
 
@@ -46,11 +46,11 @@ def new_game() -> Engine:
         max_items_per_room=max_items_per_room,
         engine=engine,
     )
+    player.parent = engine.game_map
+    engine.game_map.entities.add(player)
     engine.update_fov()
 
-    engine.message_log.add_message(
-        "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
-    )
+    engine.message_log.add_message("Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text)
     return engine
 
 
@@ -85,9 +85,7 @@ class MainMenu(input_handlers.BaseEventHandler):
         )
 
         menu_width = 24
-        for i, text in enumerate(
-            ["[N] Play a new game", "[C] Continue last game", "[Q] Quit"]
-        ):
+        for i, text in enumerate(["[N] Play a new game", "[C] Continue last game", "[Q] Quit"]):
             console.print(
                 console.width // 2,
                 console.height // 2 - 2 + i,
@@ -98,9 +96,7 @@ class MainMenu(input_handlers.BaseEventHandler):
                 bg_blend=tcod.BKGND_ALPHA(64),
             )
 
-    def ev_keydown(
-        self, event: tcod.event.KeyDown
-    ) -> Optional[input_handlers.BaseEventHandler]:
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[input_handlers.BaseEventHandler]:
         if event.sym in (tcod.event.K_q, tcod.event.K_ESCAPE):
             raise SystemExit()
         elif event.sym == tcod.event.K_c:
