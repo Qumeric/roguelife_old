@@ -26,24 +26,29 @@ class AttackEvent(BaseEvent):
     attacker: Actor
     target: Actor
 
+
 @dataclass
 class PickupEvent(BaseEvent):
     actor: Actor
     item: Actor
+
 
 @dataclass
 class DropEvent(BaseEvent):
     actor: Actor
     item: Actor
 
+
 @dataclass
 class UseEvent(BaseEvent):
     actor: Actor
     item: Actor
 
+
 @dataclass
 class MoveEvent(BaseEvent):
     actor: Actor
     direction: str
+
 
 attack_signal = Signal("attack")

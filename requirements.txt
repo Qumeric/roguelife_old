@@ -1,2 +1,3 @@
 tcod>=15.0
 numpy>=1.24
+blinker>=1.6

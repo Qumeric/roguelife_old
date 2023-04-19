@@ -8,6 +8,9 @@ from game_map import GameMap
 
 from events import attack_signal
 
+from typing import TYPE_CHECKING
+from entity_kind import EntityKind
+
 
 def create_player(x: int = 0, y: int = 0):
     """A special case.
@@ -18,6 +21,7 @@ def create_player(x: int = 0, y: int = 0):
         y=y,
         char="@",
         color=(255, 255, 255),
+        kind=EntityKind.PLAYER,
         name="Player",
         ai_cls=HostileEnemy,
         fighter=Fighter(hp=30, defense=2, power=5),
@@ -33,7 +37,7 @@ def spawn_orc(game_map: GameMap, x: int, y: int):
         y=y,
         char="o",
         color=(63, 127, 63),
-        name="Orc",
+        kind=EntityKind.ORC,
         ai_cls=HostileEnemy,
         fighter=Fighter(hp=10, defense=0, power=3),
         inventory=Inventory(capacity=0),
@@ -50,7 +54,7 @@ def spawn_troll(game_map: GameMap, x: int, y: int):
         y=y,
         char="T",
         color=(0, 127, 0),
-        name="Troll",
+        kind=EntityKind.TROLL,
         ai_cls=HostileEnemy,
         fighter=Fighter(hp=16, defense=1, power=4),
         inventory=Inventory(capacity=0),

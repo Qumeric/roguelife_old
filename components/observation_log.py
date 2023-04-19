@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from entity import Actor, Item
     from events import BaseEvent
 
+
 @dataclass
 class Observation:
     """An observation made by an actor."""
@@ -18,6 +19,7 @@ class Observation:
 
     def __str__(self) -> str:
         return self.text
+
 
 class ObservationLog(BaseComponent):
     parent: Actor
@@ -36,7 +38,7 @@ class ObservationLog(BaseComponent):
         if len(self.observations) > self.capacity:
             self.observations.pop(0)
 
-        print(f"Add observation to {self.parent.name}: {event}")
+        print(f"Add observation to {self.parent.name}: {text}")
 
     def __str__(self) -> str:
         """Represent the log as text suitable for LLMs.

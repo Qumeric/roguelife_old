@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from enum import Enum, auto
 import copy
 import math
 from typing import Optional, Tuple, Type, TypeVar, TYPE_CHECKING, Union
 
 from render_order import RenderOrder
 from events import BaseEvent, AttackEvent, MoveEvent, PickupEvent, UseEvent
+
+from name_generator import generate_name
+
+from entity_kind import EntityKind
 
 if TYPE_CHECKING:
     from blinker import Signal
@@ -34,7 +39,8 @@ class Entity:
         y: int = 0,
         char: str = "?",
         color: Tuple[int, int, int] = (255, 255, 255),
-        name: str = "<Unnamed>",
+        kind: EntityKind = EntityKind.UNKNOWN,
+        name: Optional[str] = None,
         blocks_movement: bool = False,
         render_order: RenderOrder = RenderOrder.CORPSE,
     ):
@@ -42,6 +48,7 @@ class Entity:
         self.y = y
         self.char = char
         self.color = color
+        self.kind = kind
         self.name = name
         self.blocks_movement = blocks_movement
         self.render_order = render_order
@@ -53,6 +60,10 @@ class Entity:
     @property
     def game_map(self) -> GameMap:
         return self.parent.game_map
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.name} ({self.kind.name})"
 
     def place(self, x: int, y: int, game_map: Optional[GameMap] = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
@@ -85,7 +96,8 @@ class Actor(Entity):
         y: int = 0,
         char: str = "?",
         color: Tuple[int, int, int] = (255, 255, 255),
-        name: str = "<Unnamed>",
+        kind: EntityKind = EntityKind.UNKNOWN,
+        name: Optional[str] = None,
         ai_cls: Type[BaseAI],
         fighter: Fighter,
         inventory: Inventory,
@@ -97,10 +109,12 @@ class Actor(Entity):
             y=y,
             char=char,
             color=color,
-            name=name,
+            kind=kind,
             blocks_movement=True,
             render_order=RenderOrder.ACTOR,
         )
+
+        self.name = name or generate_name(kind)
 
         self.ai: Optional[BaseAI] = ai_cls(self)
 
@@ -122,13 +136,13 @@ class Actor(Entity):
         return bool(self.ai)
 
     def handle_event(self, sender, event: BaseEvent):
-        print(f'{self} observes {event}')
+        print(f"{self.name} observes {event}")
         match event:
             case AttackEvent(_, _, _, _, attacker, target):
                 if attacker == self:
-                    self.observation_log.add_observation(f"I attacked {target}", event)
+                    self.observation_log.add_observation(f"I attacked {target.full_name}", event)
                 if target == self:
-                    self.observation_log.add_observation(f"I was attacked by {attacker}", event)
+                    self.observation_log.add_observation(f"I was attacked by {attacker.full_name}", event)
             case MoveEvent(_, _, _, _, entity, dx, dy):
                 print(f"{entity} moved by ({dx}, {dy})")
             case _:
@@ -143,7 +157,7 @@ class Item(Entity):
         y: int = 0,
         char: str = "?",
         color: Tuple[int, int, int] = (255, 255, 255),
-        name: str = "<Unnamed>",
+        name: Optional[str] = None,
         consumable: Consumable,
     ):
         super().__init__(
@@ -151,6 +165,7 @@ class Item(Entity):
             y=y,
             char=char,
             color=color,
+            kind=EntityKind.ITEM,
             name=name,
             blocks_movement=False,
             render_order=RenderOrder.ITEM,
