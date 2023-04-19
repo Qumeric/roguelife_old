@@ -59,6 +59,7 @@ class AllyHuman(BaseAI):
             return WaitAction(self.entity).perform()
         return MovementAction(self.entity, dest_x, dest_y).perform()
 
+
 class HostileEnemy(BaseAI):
     def __init__(self, entity: Actor):
         super().__init__(entity)
@@ -85,6 +86,7 @@ class HostileEnemy(BaseAI):
             ).perform()
 
         return WaitAction(self.entity).perform()
+
 
 class ConfusedEnemy(BaseAI):
     """

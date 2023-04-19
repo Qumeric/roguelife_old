@@ -40,6 +40,16 @@ class Consumable(BaseComponent):
             inventory.items.remove(entity)
 
 
+class Food(Consumable):
+    def __init__(self, nutrition: int, water_content: int):
+        self.nutrition = nutrition
+        self.water_content = water_content
+
+    def activate(self, action: actions.ItemAction) -> None:
+        consumer = action.entity
+        self.consume()
+
+
 class ConfusionConsumable(Consumable):
     def __init__(self, number_of_turns: int):
         self.number_of_turns = number_of_turns

@@ -35,7 +35,10 @@ class Fighter(ActorComponent):
         self.parent.ai = None
         self.parent.name = f"remains of {self.parent.name}"
         self.parent.render_order = RenderOrder.CORPSE
-        self.observations.add_observation("I am dead!", color.death)
+        self.observations.add_observation(
+            "I am dead!",
+            color.death,
+        )
 
     def heal(self, amount: int) -> int:
         if self.hp == self.max_hp:

@@ -4,6 +4,7 @@ from blinker import Signal
 from typing import TYPE_CHECKING
 
 from dataclasses import dataclass
+from datetime import datetime
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -14,10 +15,10 @@ class BaseEvent:
     # TODO introduce a class for in-game time
     x: int
     y: int
-    timestamp: int
+    datetime: datetime
 
     def __str__(self) -> str:
-        return f"[{self.timestamp}]: Event at ({self.x}, {self.y})"
+        return f"[{self.datetime}]: Event at ({self.x}, {self.y})"
 
 
 @dataclass

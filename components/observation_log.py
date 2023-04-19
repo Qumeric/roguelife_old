@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from typing import List, TYPE_CHECKING
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from components.base_component import BaseComponent
+
+from game_time import current_datetime
 
 import color
 import textwrap
@@ -20,9 +22,11 @@ class Observation:
     text: str
     event: Optional[BaseEvent]
     fg: Tuple[int, int, int] = color.white
+    datetime: datetime = field(default_factory=current_datetime)
 
     def __str__(self) -> str:
-        return self.text
+        formatted_datime = self.datetime.strftime("%y-%m-%d %H:%M")
+        return f"[{formatted_datime}]: {self.text}"
 
 
 class ObservationLog(BaseComponent):
@@ -81,7 +85,7 @@ class ObservationLog(BaseComponent):
         y_offset = height - 1
 
         for observation in reversed(observations):
-            for line in reversed(list(cls.wrap(observation.text, width))):
+            for line in reversed(list(cls.wrap(str(observation), width))):
                 console.print(x=x, y=y + y_offset, string=line, fg=observation.fg)
                 y_offset -= 1
                 if y_offset < 0:

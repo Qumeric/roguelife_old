@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from components.consumable import Consumable
     from components.fighter import Fighter
     from components.inventory import Inventory
+    from components.needs import Needs
+    from components.stats import Stats
     from components.observation_log import ObservationLog
     from game_map import GameMap
 
@@ -104,6 +106,8 @@ class Actor(Entity):
         ai_cls: Type[BaseAI],
         fighter: Fighter,
         inventory: Inventory,
+        needs: Needs,
+        stats: Stats,
         observation_log: ObservationLog,
         signals_to_listen: List[Signal],
         eyesight: int = 8,
@@ -127,6 +131,12 @@ class Actor(Entity):
 
         self.inventory = inventory
         self.inventory.parent = self
+
+        self.needs = needs
+        self.needs.parent = self
+
+        self.stats = stats
+        self.stats.parent = self
 
         self.observation_log = observation_log
         self.observation_log.parent = self
@@ -165,6 +175,19 @@ class Actor(Entity):
                 print(f"{entity} moved by ({dx}, {dy})")
             case _:
                 print("Unknown event type")
+
+    # TODO shall it be moved to the AI component? Same as observe_stats
+    def observe_needs(self) -> None:
+        needs_report = self.needs.report()
+        self.observation_log.add_observation(
+            text=f"I am thinking about how I feel and observe the following: {needs_report}"
+        )
+
+    def observe_stats(self) -> None:
+        stats_report = self.stats.report()
+        self.observation_log.add_observation(
+            text=f"I am thinking about who I am and observe the following: {stats_report}"
+        )
 
 
 class Item(Entity):

@@ -15,3 +15,7 @@ This is un unsorted todo list where I will write every idea I have
 
 ## Bugs
 * Observations at the same turn are not always logically ordered. For example, death message may happen before 0 hp message.
+
+## General
+* Maybe think about using special game time instead of Python datetime.
+* Maybe use some kind of DSL to describe creatures? Shall focus on easy generation of many different ones. Although python is close enough to DSL already lol.
