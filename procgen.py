@@ -135,3 +135,103 @@ def generate_dungeon(
         rooms.append(new_room)
 
     return dungeon
+
+
+import numpy as np
+import tcod.noise
+
+
+def generate_heightmap(
+    width: int, height: int, scale: float, octaves: int, persistence: float, lacunarity: float
+) -> np.ndarray:
+    shape = (width, height)
+
+    noise = tcod.noise.Noise(
+        dimensions=2,
+        algorithm=tcod.NOISE_SIMPLEX,
+        implementation=0,
+        seed=42,
+    )
+    samples = noise[tcod.noise.grid(shape, scale, origin=(0, 0))]
+
+    print(samples.shape)
+
+    return (samples + 1) / 2
+
+
+def generate_island(
+    map_width: int,
+    map_height: int,
+    engine: Engine,
+    maximum_monsters: int = 10,
+    maximum_items: int = 5,
+):
+    height_map = generate_heightmap(
+        width=map_width,
+        height=map_height,
+        scale=0.09,
+        octaves=6,
+        persistence=0.5,
+        lacunarity=2.0,
+    )
+
+    x_center = map_width // 2
+    y_center = map_height // 2
+
+    ratio = map_width / map_height
+
+    """Generate a new island map."""
+    player = engine.player
+    island = GameMap(engine, map_width, map_height, entities=[player])
+    for x in range(map_width):
+        for y in range(map_height):
+            len_from_center_x = abs(x_center - x) / x_center
+            len_from_center_y = abs(y_center - y) / y_center
+
+            h = height_map[y][x] * (1 - max(len_from_center_x, len_from_center_y))
+
+            if x == 0 or y == 0 or x == map_width - 1 or y == map_height - 1:
+                island.tiles[x, y] = tile_types.water
+            elif h < 0.15:
+                island.tiles[x, y] = tile_types.water
+            elif h < 0.2:
+                island.tiles[x, y] = tile_types.sand
+            elif h > 0.7:
+                island.tiles[x, y] = tile_types.mountain
+            elif h > 0.4 and h < 0.7:
+                island.tiles[x, y] = tile_types.forrest
+            else:
+                island.tiles[x, y] = tile_types.grass
+
+    player.place(map_width // 2, map_height // 2)
+
+    number_of_monsters = random.randint(0, maximum_monsters)
+    number_of_items = random.randint(0, maximum_items)
+
+    while number_of_monsters > 0:
+        x = random.randint(0, map_width - 1)
+        y = random.randint(0, map_height - 1)
+
+        if not any(entity.x == x and entity.y == y for entity in island.entities) and island.tiles[x, y][0]:
+            if random.random() < 0.8:
+                entity_factories.spawn_orc(island, x, y)
+            else:
+                entity_factories.spawn_troll(island, x, y)
+            number_of_monsters -= 1
+
+    while number_of_items > 0:
+        x = random.randint(0, map_width - 1)
+        y = random.randint(0, map_height - 1)
+
+        if not any(entity.x == x and entity.y == y for entity in island.entities) and island.tiles[x, y][0]:
+            if random.random() < 0.7:
+                entity_factories.spawn_health_potion(island, x, y)
+            elif random.random() < 0.8:
+                entity_factories.spawn_fireball_scroll(island, x, y)
+            elif random.random() < 0.9:
+                entity_factories.spawn_confusion_scroll(island, x, y)
+            else:
+                entity_factories.spawn_lightning_scroll(island, x, y)
+            number_of_items -= 1
+
+    return island

@@ -14,7 +14,7 @@ from engine import Engine
 import entity_factories
 import input_handlers
 import constants
-from procgen import generate_dungeon
+from procgen import generate_dungeon, generate_island
 
 
 # Load the background image and remove the alpha channel.
@@ -34,16 +34,17 @@ def new_game() -> Engine:
 
     engine = Engine(player=player)
 
-    engine.game_map = generate_dungeon(
-        max_rooms=max_rooms,
-        room_min_size=room_min_size,
-        room_max_size=room_max_size,
-        map_width=constants.map_width,
-        map_height=constants.map_height,
-        max_monsters_per_room=max_monsters_per_room,
-        max_items_per_room=max_items_per_room,
-        engine=engine,
-    )
+    # engine.game_map = generate_dungeon(
+    #     max_rooms=max_rooms,
+    #     room_min_size=room_min_size,
+    #     room_max_size=room_max_size,
+    #     map_width=constants.map_width,
+    #     map_height=constants.map_height,
+    #     max_monsters_per_room=max_monsters_per_room,
+    #     max_items_per_room=max_items_per_room,
+    #     engine=engine,
+    # )
+    engine.game_map = generate_island(constants.map_width, constants.map_height, engine)
     player.parent = engine.game_map
     engine.game_map.entities.add(player)
     engine.update_fov()

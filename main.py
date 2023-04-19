@@ -21,7 +21,8 @@ def main() -> None:
     screen_width = constants.map_width
     screen_height = constants.map_height + 7
 
-    tileset = tcod.tileset.load_tilesheet("dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
+    # OLD: tileset = tcod.tileset.load_tilesheet("dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
+    tileset = tcod.tileset.load_truetype_font("whitrabt.ttf", 16, 16)
 
     handler: input_handlers.BaseEventHandler = setup_game.MainMenu()
 
