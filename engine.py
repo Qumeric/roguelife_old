@@ -15,6 +15,8 @@ from render_functions import (
     render_names_at_mouse_location,
 )
 
+from datetime import datetime, timedelta
+
 if TYPE_CHECKING:
     from entity import Actor
     from events import Event
@@ -25,6 +27,7 @@ class Engine:
     game_map: GameMap
 
     def __init__(self, player: Actor):
+        self.ticks = 0
         self.mouse_location = (0, 0)
         self.player = player
 
@@ -57,6 +60,15 @@ class Engine:
             )
 
             actor.explored |= actor.visible
+
+    def tick(self):
+        self.ticks += 1
+        self.handle_enemy_turns()
+        self.update_fov()
+
+    @property
+    def current_date(self) -> datetime:
+        return datetime(1, 1, 1) + timedelta(minutes=self.ticks)
 
     def render(self, console: Console) -> None:
         self.game_map.render(console)
