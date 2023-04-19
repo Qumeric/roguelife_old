@@ -4,6 +4,7 @@ from typing import List, TYPE_CHECKING
 from dataclasses import dataclass
 
 from components.base_component import BaseComponent
+from message_log import MessageLog
 
 if TYPE_CHECKING:
     from entity import Actor, Item
@@ -46,3 +47,28 @@ class ObservationLog(BaseComponent):
         It is supposed to be overloaded by agents.
         """
         return str(self.observations)
+
+    @classmethod
+    def render_observations(
+        cls,
+        console: tcod.Console,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        observations: Reversible[Observation],
+    ) -> None:
+        """Render the observations provided.
+
+        The `messages` are rendered starting at the last message and working
+        backwards.
+        """
+        y_offset = height - 1
+
+        for observation in reversed(observations):
+            for line in reversed(list(MessageLog.wrap(observation.text, width))):
+                # TODO add coloring similar to message_log
+                console.print(x=x, y=y + y_offset, string=line)
+                y_offset -= 1
+                if y_offset < 0:
+                    return  # No more space to print messages.

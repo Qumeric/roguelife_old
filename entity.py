@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from components.consumable import Consumable
     from components.fighter import Fighter
     from components.inventory import Inventory
-    from components.inventory import ObservationLog
+    from components.observation_log import ObservationLog
     from game_map import GameMap
 
 
@@ -106,7 +106,7 @@ class Actor(Entity):
         inventory: Inventory,
         observation_log: ObservationLog,
         signals_to_listen: List[Signal],
-        eyesight: int = 8
+        eyesight: int = 8,
     ):
         super().__init__(
             x=x,

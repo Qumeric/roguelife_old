@@ -18,7 +18,7 @@ import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Item
+    from entity import Item, Actor
 
 
 MOVE_KEYS = {
@@ -415,6 +415,16 @@ class MainGameEventHandler(EventHandler):
         # No valid key was pressed
         return action
 
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
+        """Handle left clicks."""
+        x, y = event.tile
+        if event.button == 1 and self.engine.game_map.in_bounds(x, y) and self.engine.game_map.visible[x, y]:
+            for actor in self.engine.game_map.actors:
+                if actor.x == x and actor.y == y:
+                    return ObservationsLogViewer(self.engine, actor)
+
+        return super().ev_mousebuttondown(event)
+
 
 class GameOverEventHandler(EventHandler):
     def on_quit(self) -> None:
@@ -439,33 +449,11 @@ CURSOR_Y_KEYS = {
 }
 
 
-class HistoryViewer(EventHandler):
+class TextViewer(EventHandler):
     """Print the history on a larger window which can be navigated."""
 
     def __init__(self, engine: Engine):
         super().__init__(engine)
-        self.log_length = len(engine.message_log.messages)
-        self.cursor = self.log_length - 1
-
-    def on_render(self, console: tcod.Console) -> None:
-        super().on_render(console)  # Draw the main state as the background.
-
-        log_console = tcod.Console(console.width - 6, console.height - 6)
-
-        # Draw a frame with a custom banner title.
-        log_console.draw_frame(0, 0, log_console.width, log_console.height)
-        log_console.print_box(0, 0, log_console.width, 1, "┤Message history├", alignment=tcod.CENTER)
-
-        # Render the message log using the cursor parameter.
-        self.engine.message_log.render_messages(
-            log_console,
-            1,
-            1,
-            log_console.width - 2,
-            log_console.height - 2,
-            self.engine.message_log.messages[: self.cursor + 1],
-        )
-        log_console.blit(console, 3, 3)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[MainGameEventHandler]:
         # Fancy conditional movement to make it feel right.
@@ -487,3 +475,64 @@ class HistoryViewer(EventHandler):
         else:  # Any other key moves back to the main game state.
             return MainGameEventHandler(self.engine)
         return None
+
+
+class HistoryViewer(TextViewer):
+    def __init__(self, engine: Engine):
+        super().__init__(engine)
+        self.log_length = len(engine.message_log.messages)
+        self.cursor = len(engine.game_world.history) - 1  # TODO what is game_world???
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+        log_console = tcod.Console(console.width - 6, console.height - 6)
+
+        # Draw a frame with a custom banner title.
+        log_console.draw_frame(0, 0, log_console.width, log_console.height)
+        log_console.print_box(0, 0, log_console.width, 1, f"┤Message History├", alignment=tcod.CENTER)
+
+        # Render the message log using the cursor parameter.
+        self.engine.message_log.render_messages(
+            log_console,
+            1,
+            1,
+            log_console.width - 2,
+            log_console.height - 2,
+            self.engine.message_log.messages[: self.cursor + 1],
+        )
+        log_console.blit(console, 3, 3)
+
+
+class ObservationsLogViewer(TextViewer):
+    def __init__(self, engine, actor: Actor):
+        super().__init__(engine)
+        self.actor = actor
+        self.log_length = len(actor.observation_log.observations)
+        self.cursor = self.log_length - 1
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+        super().on_render(console)
+        log_console = tcod.Console(console.width - 6, console.height - 6)
+
+        # Draw a frame with a custom banner title.
+        log_console.draw_frame(0, 0, log_console.width, log_console.height)
+        log_console.print_box(
+            0,
+            0,
+            log_console.width,
+            1,
+            f"┤Observations of {self.actor.name} ({self.actor.kind.name})├",
+            alignment=tcod.CENTER,
+        )
+
+        # Render the message log using the cursor parameter.
+        self.actor.observation_log.render_observations(
+            log_console,
+            1,
+            1,
+            log_console.width - 2,
+            log_console.height - 2,
+            self.actor.observation_log.observations[: self.cursor + 1],
+        )
+        log_console.blit(console, 3, 3)
