@@ -1,2 +1,2 @@
-map_width = 80
-map_height = 43
+map_width = 160
+map_height = 100 + 3

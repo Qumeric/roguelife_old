@@ -7,6 +7,7 @@ import color
 import exceptions
 import setup_game
 import input_handlers
+import constants
 
 
 def save_game(handler: input_handlers.BaseEventHandler, filename: str) -> None:
@@ -17,8 +18,8 @@ def save_game(handler: input_handlers.BaseEventHandler, filename: str) -> None:
 
 
 def main() -> None:
-    screen_width = 80
-    screen_height = 50
+    screen_width = constants.map_width
+    screen_height = constants.map_height + 7
 
     tileset = tcod.tileset.load_tilesheet("dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
 
@@ -38,12 +39,12 @@ def main() -> None:
                 handler.on_render(console=root_console)
                 context.present(root_console)
 
-                try:
-                    for event in tcod.event.wait():
+                for event in tcod.event.wait():
+                    try:
                         context.convert_event(event)
                         handler = handler.handle_events(event)
-                except Exception:  # Handle exceptions in game.
-                    traceback.print_exc()  # Print error to stderr.
+                    except Exception:  # Handle exceptions in game.
+                        traceback.print_exc()  # Print error to stderr.
         except exceptions.QuitWithoutSaving:
             raise
         except SystemExit:  # Save and quit.

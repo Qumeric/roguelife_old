@@ -3,6 +3,7 @@ from __future__ import annotations
 import color
 import lzma
 import pickle
+import constants
 from typing import TYPE_CHECKING
 
 from tcod.console import Console
@@ -60,7 +61,7 @@ class Engine:
     def render(self, console: Console) -> None:
         self.game_map.render(console)
 
-        self.player.observation_log.render(console=console, x=21, y=45, width=40, height=5)
+        self.player.observation_log.render(console=console, x=21, y=constants.map_height + 2, width=40, height=5)
 
         render_bar(
             console=console,
@@ -69,7 +70,7 @@ class Engine:
             total_width=20,
         )
 
-        render_names_at_mouse_location(console=console, x=21, y=44, engine=self)
+        render_names_at_mouse_location(console=console, x=21, y=constants.map_height + 1, engine=self)
 
     def save_as(self, filename: str) -> None:
         """Save this Engine instance as a compressed file."""
