@@ -46,12 +46,25 @@ class BaseAI(Action):
         return [(index[0], index[1]) for index in path]
 
 
-class HostileEnemy(BaseAI):
+class AllyHuman(BaseAI):
     def __init__(self, entity: Actor):
         super().__init__(entity)
         self.path: List[Tuple[int, int]] = []
 
     def perform(self) -> None:
+        dest_x = random.randint(-1, 2)
+        dest_y = random.randint(-1, 2)
+
+        if random.random() < 0.2:
+            return WaitAction(self.entity).perform()
+        return MovementAction(self.entity, dest_x, dest_y).perform()
+
+class HostileEnemy(BaseAI):
+    def __init__(self, entity: Actor):
+        super().__init__(entity)
+        self.path: List[Tuple[int, int]] = []
+
+    def perform(self) -> Action:
         target = self.engine.player
         dx = target.x - self.entity.x
         dy = target.y - self.entity.y

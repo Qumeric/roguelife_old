@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy
+from components.ai import HostileEnemy, AllyHuman
 from components import consumable
 from components.fighter import Fighter
 from components.inventory import Inventory
@@ -30,6 +30,21 @@ def create_player(x: int = 0, y: int = 0):
         signals_to_listen=[attack_signal],
     )
 
+def spawn_human(game_map: GameMap, x: int, y: int):
+    human = Actor(
+        x=x,
+        y=y,
+        char="h",
+        color=(127, 127, 127),
+        kind=EntityKind.HUMAN,
+        ai_cls=AllyHuman,
+        fighter=Fighter(hp=10, defense=0, power=3),
+        inventory=Inventory(capacity=0),
+        observation_log=ObservationLog(capacity=512),
+        signals_to_listen=[attack_signal],
+    )
+    game_map.spawn(human)
+    return human
 
 def spawn_orc(game_map: GameMap, x: int, y: int):
     orc = Actor(

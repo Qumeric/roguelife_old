@@ -165,6 +165,7 @@ def generate_island(
     engine: Engine,
     maximum_monsters: int = 10,
     maximum_items: int = 5,
+    maximum_allies: int = 5,
 ):
     height_map = generate_heightmap(
         width=map_width,
@@ -205,8 +206,9 @@ def generate_island(
 
     player.place(map_width // 2, map_height // 2)
 
-    number_of_monsters = random.randint(0, maximum_monsters)
-    number_of_items = random.randint(0, maximum_items)
+    number_of_monsters = random.randint(1, maximum_monsters)
+    number_of_items = random.randint(1, maximum_items)
+    number_of_allies = random.randint(1, maximum_allies)
 
     while number_of_monsters > 0:
         x = random.randint(0, map_width - 1)
@@ -233,5 +235,16 @@ def generate_island(
             else:
                 entity_factories.spawn_lightning_scroll(island, x, y)
             number_of_items -= 1
+
+    while number_of_allies > 0:
+        x = random.randint(0, map_width - 1)
+        y = random.randint(0, map_height - 1)
+
+        if not any(entity.x == x and entity.y == y for entity in island.entities) and island.tiles[x, y][0]:
+            dist_to_player = ((player.x - x) ** 2 + (player.y - y) ** 2) / (map_width + map_height)
+            # TODO probably sensitive to map scale now
+            if random.random() * 2 > dist_to_player:
+                entity_factories.spawn_human(island, x, y)
+                number_of_allies -= 1
 
     return island
