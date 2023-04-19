@@ -3,11 +3,12 @@
 This is un unsorted todo list where I will write every idea I have
 
 ## Observation System
-* Handle dead entities gracefully. They need at least stop observing.
-* Only handle observations in the line of sight
 * Add more observations, such as movement, pickup etc.
 * Make it possible to see observation logs from the game.
 * Implement summary function for the log. Use gpt3.5-turbo.
 
 ## Word generation
 * Probably move from dungeons to open world. See existing implementations.
+
+## Performance
+* Handle dead entities more gracefully.

@@ -1,9 +1,12 @@
 from __future__ import annotations
+import numpy as np
 
 from enum import Enum, auto
 import copy
 import math
+import tcod
 from typing import Optional, Tuple, Type, TypeVar, TYPE_CHECKING, Union
+import constants
 
 from render_order import RenderOrder
 from events import BaseEvent, AttackEvent, MoveEvent, PickupEvent, UseEvent
@@ -103,6 +106,7 @@ class Actor(Entity):
         inventory: Inventory,
         observation_log: ObservationLog,
         signals_to_listen: List[Signal],
+        eyesight: int = 8
     ):
         super().__init__(
             x=x,
@@ -127,6 +131,15 @@ class Actor(Entity):
         self.observation_log = observation_log
         self.observation_log.parent = self
 
+        self.visible = np.full(
+            (constants.map_width, constants.map_height), fill_value=False, order="F"
+        )  # Tiles the actor can currently see. Updated each turn by the engine.
+        self.explored = np.full(
+            (constants.map_width, constants.map_height), fill_value=False, order="F"
+        )  # Tiles the actor has seen before. Updated each turn by the engine.
+
+        self.eyesight = eyesight
+
         for signal in signals_to_listen:
             signal.connect(self.handle_event)
 
@@ -135,7 +148,12 @@ class Actor(Entity):
         """Returns True as long as this actor can perform actions."""
         return bool(self.ai)
 
+    def can_see(self, target_x: int, target_y: int) -> bool:
+        return self.is_alive and self.visible[target_x, target_y]
+
     def handle_event(self, sender, event: BaseEvent):
+        if not self.can_see(event.x, event.y):
+            return
         print(f"{self.name} observes {event}")
         match event:
             case AttackEvent(_, _, _, _, attacker, target):
