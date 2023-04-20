@@ -1,18 +1,21 @@
-from components.ai import HostileEnemy, AllyHuman
-from components import consumable
-from components.fighter import Fighter
-from components.inventory import Inventory
-from components.observation_log import ObservationLog
-from components.needs import Needs
-from components.stats import Stats
-from entity import Actor, Item
-from game_map import GameMap
 from datetime import timedelta
 from random import randint
-from events import attack_signal
-
 from typing import TYPE_CHECKING
+
+from components import consumable
+from components.ai import AllyHuman, HostileEnemy
+from components.fighter import Fighter
+from components.interactable import TreeInteractable
+from components.inventory import Inventory
+from components.needs import Needs
+from components.observation_log import ObservationLog
+from components.stats import Stats
+from entity import Actor, Building, Item
 from entity_kind import EntityKind
+from events import attack_signal, drop_signal, move_signal, pickup_signal, spawn_signal
+from game_map import GameMap
+
+visible_signals = [spawn_signal, attack_signal, pickup_signal, move_signal, drop_signal]
 
 
 def create_player(x: int = 0, y: int = 0):
@@ -30,9 +33,9 @@ def create_player(x: int = 0, y: int = 0):
         fighter=Fighter(hp=30, defense=2, power=5),
         inventory=Inventory(capacity=26),
         needs=Needs(max_hunger=100, max_thirst=100, max_sleepiness=1000, max_lonliness=1000),
-        stats=Stats(age=timedelta(days=20*365), intelligence=10, strength=10, dexterity=10, stamina=10),
+        stats=Stats(age=timedelta(days=20 * 365), intelligence=10, strength=10, dexterity=10, stamina=10),
         observation_log=ObservationLog(capacity=1024),
-        signals_to_listen=[attack_signal],
+        signals_to_listen=visible_signals,
     )
 
 
@@ -53,17 +56,20 @@ def spawn_human(game_map: GameMap, x: int, y: int):
             max_lonliness=1000,
         ),
         stats=Stats(
-            age=timedelta(days=randint(15, 60)*365),
+            age=timedelta(days=randint(15, 60) * 365),
             intelligence=randint(1, 13),
             strength=randint(3, 15),
             dexterity=randint(3, 15),
             stamina=randint(3, 15),
         ),
         observation_log=ObservationLog(capacity=512),
-        signals_to_listen=[attack_signal],
+        signals_to_listen=visible_signals,
     )
     game_map.spawn(human)
     return human
+
+
+### Actors ###
 
 
 def spawn_orc(game_map: GameMap, x: int, y: int):
@@ -90,7 +96,7 @@ def spawn_orc(game_map: GameMap, x: int, y: int):
             stamina=randint(5, 17),
         ),
         observation_log=ObservationLog(capacity=512),
-        signals_to_listen=[attack_signal],
+        signals_to_listen=visible_signals,
     )
     game_map.spawn(orc)
     return orc
@@ -120,10 +126,13 @@ def spawn_troll(game_map: GameMap, x: int, y: int):
             stamina=randint(10, 30),
         ),
         observation_log=ObservationLog(capacity=256),
-        signals_to_listen=[attack_signal],
+        signals_to_listen=visible_signals,
     )
     game_map.spawn(troll)
     return troll
+
+
+### Items ###
 
 
 def spawn_confusion_scroll(game_map: GameMap, x: int, y: int):
@@ -177,14 +186,25 @@ def spawn_lightning_scroll(game_map: GameMap, x: int, y: int):
     game_map.spawn(entity=lightning_scroll)
     return lightning_scroll
 
+
 def spawn_apple(game_map: GameMap, x: int, y: int):
     apple = Item(
-        x=x,
-        y=y,
-        char="a",
-        color=(255, 0, 0),
-        name="Apple",
-        consumable=consumable.Food(nutrition = 10, water_content = 8)
+        x=x, y=y, char="a", color=(255, 0, 0), name="Apple", consumable=consumable.Food(nutrition=10, water_content=8)
     )
     game_map.spawn(entity=apple)
     return apple
+
+
+### Buildings ###
+def spawn_tree(game_map: GameMap, x: int, y: int):
+    tree = Building(
+        x=x,
+        y=y,
+        char="T",
+        color=(255, 255, 255),
+        name="Tree",
+        interactable=TreeInteractable(),
+    )
+
+    game_map.spawn(entity=tree)
+    return tree

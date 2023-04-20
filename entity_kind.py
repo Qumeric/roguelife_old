@@ -11,4 +11,6 @@ class EntityKind(Enum):
 
     ITEM = auto()
 
+    BUILDING = auto()
+
     UNKNOWN = auto()

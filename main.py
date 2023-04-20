@@ -4,10 +4,10 @@ import traceback
 import tcod
 
 import color
-import exceptions
-import setup_game
-import input_handlers
 import constants
+import exceptions
+import input_handlers
+import setup_game
 
 
 def save_game(handler: input_handlers.BaseEventHandler, filename: str) -> None:

@@ -1,21 +1,20 @@
 """Handle the loading and initialization of game sessions."""
 from __future__ import annotations
 
+from typing import Optional
 import copy
 import lzma
 import pickle
 import traceback
-from typing import Optional
 
 import tcod
 
-import color
 from engine import Engine
+from procgen import generate_dungeon, generate_island
+import color
+import constants
 import entity_factories
 import input_handlers
-import constants
-from procgen import generate_dungeon, generate_island
-
 
 # Load the background image and remove the alpha channel.
 background_image = tcod.image.load("menu_background.png")[:, :, :3]

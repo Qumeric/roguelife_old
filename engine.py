@@ -1,21 +1,17 @@
 from __future__ import annotations
 
-import color
+from typing import TYPE_CHECKING
 import lzma
 import pickle
-import constants
-from typing import TYPE_CHECKING
 
 from tcod.console import Console
 from tcod.map import compute_fov
 
-import exceptions
-from render_functions import (
-    render_bar,
-    render_names_at_mouse_location,
-)
-
 from game_time import tick as global_tick
+from render_functions import render_bar, render_names_at_mouse_location
+import color
+import constants
+import exceptions
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -75,6 +71,7 @@ class Engine:
 
     def tick(self):
         global_tick()
+        # TODO this is clunky, just send somethink like tick_signal and let all entities listen to it
         self.handle_enemy_turns()
         self.update_fov()
         self.update_needs()

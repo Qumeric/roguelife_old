@@ -1,26 +1,27 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple
 
+from events import (
+    AttackEvent,
+    BuildingInteractEvent,
+    DropEvent,
+    MoveEvent,
+    PickupEvent,
+    UseEvent,
+    attack_signal,
+    building_interact_signal,
+    drop_signal,
+    move_signal,
+    pickup_signal,
+    use_signal,
+)
 import color
 import exceptions
 
-from events import (
-    attack_signal,
-    AttackEvent,
-    pickup_signal,
-    PickupEvent,
-    drop_signal,
-    DropEvent,
-    use_signal,
-    UseEvent,
-    move_signal,
-    MoveEvent,
-)
-
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Actor, Entity, Item
+    from entity import Actor, Building, Entity, Item
 
 
 class Action:
@@ -92,7 +93,7 @@ class ItemAction(Action):
 class DropItem(ItemAction):
     def perform(self) -> None:
         self.entity.inventory.drop(self.item)
-        drop_signal.send(DropEvent(self.entity.x, self.entity.y, 10, self.entity, self.item))
+        drop_signal.send(DropEvent(self.entity.x, self.entity.y, self.entity, self.item))
 
 
 class WaitAction(Action):
@@ -122,8 +123,31 @@ class ActionWithDirection(Action):
         """Return the actor at this actions destination."""
         return self.engine.game_map.get_actor_at_location(*self.dest_xy)
 
+    @property
+    def target_building(self) -> Optional[Building]:
+        """Return the building at this actions destination."""
+        return self.engine.game_map.get_building_at_location(*self.dest_xy)
+
     def perform(self) -> None:
         raise NotImplementedError()
+
+
+class BuildingInteractAction(ActionWithDirection):
+    def perform(self) -> None:
+        target = self.target_building
+        if not target:
+            raise exceptions.Impossible("No building to interact with.")
+
+        building_interact_signal.send(
+            self,
+            event=BuildingInteractEvent(
+                self.entity.x,
+                self.entity.y,
+                self.entity,
+                target,
+            ),
+        )
+        target.interactable.interact(self)
 
 
 class MeleeAction(ActionWithDirection):
@@ -139,7 +163,6 @@ class MeleeAction(ActionWithDirection):
             event=AttackEvent(
                 self.entity.x,
                 self.entity.y,
-                10,  # TODO use proper time
                 self.entity,
                 target,
             ),
@@ -177,7 +200,6 @@ class MovementAction(ActionWithDirection):
             event=MoveEvent(
                 self.entity.x,
                 self.entity.y,
-                10,  # TODO use proper time
                 self.entity,
                 self.dx,
                 self.dy,
@@ -190,5 +212,7 @@ class BumpAction(ActionWithDirection):
     def perform(self) -> None:
         if self.target_actor:
             return MeleeAction(self.entity, self.dx, self.dy).perform()
+        elif self.target_building:
+            return BuildingInteractAction(self.entity, self.dx, self.dy).perform()
         else:
             return MovementAction(self.entity, self.dx, self.dy).perform()

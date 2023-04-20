@@ -1,29 +1,29 @@
 from __future__ import annotations
 
-from blinker import Signal
-from typing import TYPE_CHECKING
-
 from dataclasses import dataclass
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from blinker import Signal
 
 if TYPE_CHECKING:
-    from entity import Actor
+    from entity import Actor, Building, Entity
 
 
 @dataclass
 class BaseEvent:
-    # TODO introduce a class for in-game time
     x: int
     y: int
-    datetime: datetime
-
-    def __str__(self) -> str:
-        return f"[{self.datetime}]: Event at ({self.x}, {self.y})"
 
 
 @dataclass
 class ActorEvent(BaseEvent):
     actor: Actor
+
+
+@dataclass
+class SpawnEvent(BaseEvent):
+    entity: Entity
 
 
 @dataclass
@@ -52,8 +52,15 @@ class MoveEvent(ActorEvent):
     dy: int
 
 
+@dataclass
+class BuildingInteractEvent(ActorEvent):
+    building: Building
+
+
+spawn_signal = Signal("spawn")
 attack_signal = Signal("attack")
 pickup_signal = Signal("pickup")
 drop_signal = Signal("drop")
 use_signal = Signal("use")
 move_signal = Signal("move")
+building_interact_signal = Signal("building_interact")

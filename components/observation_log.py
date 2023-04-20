@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, List
+import textwrap
 
 from components.base_component import BaseComponent
-
 from game_time import current_datetime
-
 import color
-import textwrap
 
 if TYPE_CHECKING:
     from entity import Actor, Item

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
-
 from dataclasses import dataclass
-from components.base_component import ActorComponent
 from datetime import timedelta
+from typing import TYPE_CHECKING, List
+
+from components.base_component import ActorComponent
 
 if TYPE_CHECKING:
     from entity import Actor, Item

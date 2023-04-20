@@ -1,8 +1,7 @@
+from typing import Union
 import random
 
-from typing import Union
 from entity_kind import EntityKind
-
 
 # Define templates for each entity type
 orc_templates = ["Gor{con}", "Ug{con}{vow}k", "Gri{con}{vow}kh", "Lur{con}{vow}"]

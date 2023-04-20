@@ -34,10 +34,14 @@ class Consumable(BaseComponent):
 
     def consume(self) -> None:
         """Remove the consumed item from its containing inventory."""
-        entity = self.parent
-        inventory = entity.parent
+        item = self.parent
+        inventory = item.parent
+        actor = inventory.parent
+
         if isinstance(inventory, components.inventory.Inventory):
-            inventory.items.remove(entity)
+            inventory.items.remove(item)
+
+        actor.observation_log.add_observation(f"I consumed the {self.parent.name}")
 
 
 class Food(Consumable):
@@ -48,6 +52,7 @@ class Food(Consumable):
     def activate(self, action: actions.ItemAction) -> None:
         consumer = action.entity
         self.consume()
+        consumer.needs.eat(self)
 
 
 class ConfusionConsumable(Consumable):
@@ -121,12 +126,8 @@ class HealingConsumable(Consumable):
 
     def activate(self, action: actions.ItemAction) -> None:
         consumer = action.entity
-
-        self.engine.add_observation(
-            f"I consumed the {self.parent.name}",
-            color.health_recovered,
-        )
         self.consume()
+        consumer.fighter.heal(self.amount)
 
 
 class LightningDamageConsumable(Consumable):

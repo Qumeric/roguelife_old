@@ -1,29 +1,29 @@
 from __future__ import annotations
-import numpy as np
 
 from enum import Enum, auto
+from typing import TYPE_CHECKING, Optional, Tuple, Type, TypeVar, Union
 import copy
 import math
+
+import numpy as np
 import tcod
-from typing import Optional, Tuple, Type, TypeVar, TYPE_CHECKING, Union
-import constants
-
-from render_order import RenderOrder
-from events import BaseEvent, AttackEvent, MoveEvent, PickupEvent, UseEvent
-
-from name_generator import generate_name
 
 from entity_kind import EntityKind
+from events import AttackEvent, BaseEvent, MoveEvent, PickupEvent, UseEvent
+from name_generator import generate_name
+from render_order import RenderOrder
+import constants
 
 if TYPE_CHECKING:
     from blinker import Signal
+
     from components.ai import BaseAI
     from components.consumable import Consumable
     from components.fighter import Fighter
     from components.inventory import Inventory
     from components.needs import Needs
-    from components.stats import Stats
     from components.observation_log import ObservationLog
+    from components.stats import Stats
     from game_map import GameMap
 
 
@@ -164,15 +164,15 @@ class Actor(Entity):
     def handle_event(self, sender, event: BaseEvent):
         if not self.can_see(event.x, event.y):
             return
-        print(f"{self.name} observes {event}")
+        # print(f"{self.name} observes {event}")
         match event:
-            case AttackEvent(_, _, _, actor, target):
+            case AttackEvent(_, _, actor, target):
                 if actor == self:
                     self.observation_log.add_observation(f"I attacked {target.full_name}", event)
                 if target == self:
                     self.observation_log.add_observation(f"I was attacked by {actor.full_name}", event)
-            case MoveEvent(_, _, _, actor, dx, dy):
-                print(f"{entity} moved by ({dx}, {dy})")
+            case MoveEvent(_, _, actor, dx, dy):
+                print(f"{actor.name} moved by ({dx}, {dy})")
             case _:
                 print("Unknown event type")
 
@@ -214,3 +214,29 @@ class Item(Entity):
 
         self.consumable = consumable
         self.consumable.parent = self
+
+
+class Building(Entity):
+    def __init__(
+        self,
+        *,
+        x: int = 0,
+        y: int = 0,
+        char: str = "?",
+        color: Tuple[int, int, int] = (255, 255, 255),
+        name: Optional[str] = None,
+        interactable: Interactable,
+    ):
+        super().__init__(
+            x=x,
+            y=y,
+            char=char,
+            color=color,
+            kind=EntityKind.BUILDING,
+            name=name,
+            blocks_movement=True,
+            render_order=RenderOrder.BUILDING,
+        )
+
+        self.interactable = interactable
+        self.interactable.parent = self

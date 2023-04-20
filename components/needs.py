@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
-
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, List
+
 from components.base_component import ActorComponent
 
 if TYPE_CHECKING:
+    from components.consumable import Food
+    from components.needs import Needs
     from entity import Actor, Item
 
 
@@ -60,3 +62,16 @@ Lonliness: {self.lonliness}/{self.max_lonliness}"
         if self.lonliness >= self.max_lonliness:
             self.parent.observation_log.add_observation(text="I am extremely lonely!", event=None)
             self.lonliness = self.max_lonliness
+
+    # TODO unify with hp etc.
+    def eat(self, food: Food):
+        self.hunger -= food.nutrition
+        self.thirst -= food.water_content
+        if self.hunger < 0:
+            self.hunger = 0
+        if self.thirst < 0:
+            self.thirst = 0
+
+        self.parent.observation_log.add_observation(
+            text=f"I am less hungry and thirsty! Hunger now: {self.hunger}, Thirst now: {self.thirst}", event=None
+        )

@@ -1,24 +1,18 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Callable, Optional, Tuple, Union
 import os
-
-from typing import Callable, Optional, Tuple, TYPE_CHECKING, Union
 
 import tcod
 
+from actions import Action, BumpAction, PickupAction, WaitAction
 import actions
-from actions import (
-    Action,
-    BumpAction,
-    PickupAction,
-    WaitAction,
-)
 import color
 import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Item, Actor
+    from entity import Actor, Item
 
 
 MOVE_KEYS = {

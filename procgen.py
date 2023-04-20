@@ -1,14 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Iterator, List, Tuple
 import random
-from typing import Iterator, List, Tuple, TYPE_CHECKING
 
 import tcod
 
-import entity_factories
 from game_map import GameMap
+import entity_factories
 import tile_types
-
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -246,5 +245,11 @@ def generate_island(
             if random.random() * 2 > dist_to_player:
                 entity_factories.spawn_human(island, x, y)
                 number_of_allies -= 1
+
+    for x in range(map_width):
+        for y in range(map_height):
+            if island.tiles[x, y] == tile_types.forrest:
+                if random.random() < 0.05:
+                    entity_factories.spawn_tree(island, x, y)
 
     return island

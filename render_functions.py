@@ -7,6 +7,7 @@ import constants
 
 if TYPE_CHECKING:
     from tcod import Console
+
     from engine import Engine
     from game_map import GameMap
 

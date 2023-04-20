@@ -5,8 +5,10 @@ from typing import Iterable, Iterator, Optional, TYPE_CHECKING
 import numpy as np
 from tcod.console import Console
 
-from entity import Actor, Item
+from entity import Actor, Item, Building
 import tile_types
+
+from events import SpawnEvent, spawn_signal
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -36,6 +38,10 @@ class GameMap:
     def items(self) -> Iterator[Item]:
         yield from (entity for entity in self.entities if isinstance(entity, Item))
 
+    @property
+    def buildings(self) -> Iterator[Building]:
+        yield from (entity for entity in self.entities if isinstance(entity, Building))
+
     def get_blocking_entity_at_location(
         self,
         location_x: int,
@@ -51,6 +57,13 @@ class GameMap:
         for actor in self.actors:
             if actor.x == x and actor.y == y:
                 return actor
+
+        return None
+
+    def get_building_at_location(self, x: int, y: int) -> Optional[Building]:
+        for building in self.buildings:
+            if building.x == x and building.y == y:
+                return building
 
         return None
 
@@ -78,6 +91,15 @@ class GameMap:
             if self.visible[entity.x, entity.y]:
                 console.print(x=entity.x, y=entity.y, string=entity.char, fg=entity.color)
 
+    def can_spawn_at(self, x: int, y: int) -> bool:
+        """Return True if an entity can spawn at this location."""
+        return self.in_bounds(x, y) and not self.get_blocking_entity_at_location(x, y)
+
     def spawn(self, entity: Entity) -> None:
         entity.parent = self
         self.entities.add(entity)
+
+        spawn_signal.send(
+            self,
+            event=SpawnEvent(entity.x, entity.y, entity),
+        )
