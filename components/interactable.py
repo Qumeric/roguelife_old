@@ -34,6 +34,9 @@ class TreeInteractable(Interactable):
     def apples_on_tree(self) -> int:
         return self.current_energy // self.energy_for_apple
 
+    def update(self):
+        self.current_energy = min(self.current_energy + 1, self.max_energy)
+
     def interact(self, action: actions.BuildingInteractAction) -> None:
         engine = action.engine
         tree = self.parent

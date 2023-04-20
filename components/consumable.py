@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from components.base_component import BaseComponent
@@ -17,16 +18,19 @@ if TYPE_CHECKING:
 class Consumable(BaseComponent):
     parent: Item
 
+    def update(self) -> None:
+        pass
+
     def get_action(self, consumer: Actor) -> ActionOrHandler | None:
         """Try to return the action for this item."""
         return actions.ItemAction(consumer, self.parent)
 
+    @abstractmethod
     def activate(self, action: actions.ItemAction) -> None:
         """Invoke this items ability.
 
         `action` is the context for this activation.
         """
-        raise NotImplementedError()
 
     def consume(self) -> None:
         """Remove the consumed item from its containing inventory."""

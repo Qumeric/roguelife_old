@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from random import random
 from typing import TYPE_CHECKING, TypeVar
 import math
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound="Entity")
 
 
-class Entity:
+class Entity(ABC):
     """
     A generic object to represent players, enemies, items, etc.
     """
@@ -64,7 +65,7 @@ class Entity:
             self.parent = parent
             parent.entities.add(self)
 
-        tick_signal.connect(receiver=self.tick, sender=self)
+        tick_signal.connect(receiver=self.tick)
 
     @property
     def game_map(self) -> GameMap:
@@ -74,11 +75,9 @@ class Entity:
     def full_name(self) -> str:
         return f"{self.name} ({self.kind.name})"
 
+    @abstractmethod
     def tick(self, _sender, event: TickEvent) -> None:
-        """Called every tick. Override in subclasses.
-        It should update all components.
-        """
-        raise NotImplementedError("Shall be implemented by subclasses.")
+        """Called every tick. It should update all components."""
 
     def place(self, x: int, y: int, game_map: GameMap | None = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
@@ -161,8 +160,6 @@ class Actor(Entity):
 
         for signal in signals_to_listen:
             signal.connect(self.handle_event)
-
-        tick_signal.connect(self.tick)
 
     def _update_fov(self) -> None:
         self.visible[:] = compute_fov(
@@ -252,6 +249,9 @@ class Item(Entity):
         self.consumable = consumable
         self.consumable.parent = self
 
+    def tick(self, _sender, event: TickEvent) -> None:
+        pass
+
 
 class Building(Entity):
     def __init__(
@@ -277,3 +277,6 @@ class Building(Entity):
 
         self.interactable = interactable
         self.interactable.parent = self
+
+    def tick(self, _sender, event: TickEvent) -> None:
+        self.interactable.update()

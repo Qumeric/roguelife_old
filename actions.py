@@ -19,8 +19,10 @@ if TYPE_CHECKING:
     from engine import Engine
     from entity import Actor, Building, Entity, Item
 
+from abc import ABC, abstractmethod
 
-class Action:
+
+class Action(ABC):
     def __init__(self, entity: Actor) -> None:
         super().__init__()
         self.entity = entity
@@ -30,6 +32,7 @@ class Action:
         """Return the engine this action belongs to."""
         return self.entity.game_map.engine
 
+    @abstractmethod
     def perform(self) -> None:
         """Perform this action with the objects needed to determine its scope.
 
@@ -39,7 +42,6 @@ class Action:
 
         This method must be overridden by Action subclasses.
         """
-        raise NotImplementedError()
 
 
 class PickupAction(Action):

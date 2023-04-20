@@ -9,6 +9,8 @@ import color
 if TYPE_CHECKING:
     from entity import Actor
 
+from game_time import current_datetime
+
 
 class Fighter(ActorComponent):
     parent: Actor
@@ -18,6 +20,10 @@ class Fighter(ActorComponent):
         self._hp = hp
         self.defense = defense
         self.power = power
+
+    def update(self) -> None:
+        if current_datetime().minute % 10 == 0:
+            self.heal(1)
 
     @property
     def hp(self) -> int:

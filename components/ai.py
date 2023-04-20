@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 import random
 
@@ -12,9 +13,11 @@ if TYPE_CHECKING:
     from entity import Actor
 
 
+# TODO maybe it shall be moved from components? It is kinda weird...
 class BaseAI(Action):
+    @abstractmethod
     def perform(self) -> None:
-        raise NotImplementedError()
+        pass
 
     def get_path_to(self, dest_x: int, dest_y: int) -> list[tuple[int, int]]:
         """Compute and return a path to the target position.

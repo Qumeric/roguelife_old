@@ -12,6 +12,10 @@ if TYPE_CHECKING:
 class BaseComponent:
     parent: Entity  # Owning entity instance.
 
+    def update(self) -> None:
+        """Perform any logic that needs to happen on this component's turn."""
+        raise NotImplementedError()
+
     @property
     def game_map(self) -> GameMap:
         return self.parent.game_map
