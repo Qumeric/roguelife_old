@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-from enum import Enum, auto
 from random import random
-from typing import TYPE_CHECKING, Optional, Tuple, Type, TypeVar, Union
-import copy
+from typing import TYPE_CHECKING, TypeVar
 import math
 
 from tcod.map import compute_fov
 import numpy as np
-import tcod
 
 from entity_kind import EntityKind
-from events import AttackEvent, BaseMapEvent, MoveEvent, PickupEvent, TickEvent, UseEvent
+from events import AttackEvent, BaseMapEvent, MoveEvent, TickEvent
 from exceptions import Impossible
 from game_time import tick_signal
 from name_generator import generate_name
@@ -24,6 +21,7 @@ if TYPE_CHECKING:
     from components.ai import BaseAI
     from components.consumable import Consumable
     from components.fighter import Fighter
+    from components.interactable import Interactable
     from components.inventory import Inventory
     from components.needs import Needs
     from components.observation_log import ObservationLog
@@ -39,17 +37,17 @@ class Entity:
     A generic object to represent players, enemies, items, etc.
     """
 
-    parent: Union[GameMap, Inventory]
+    parent: GameMap | Inventory
 
     def __init__(
         self,
-        parent: Optional[GameMap] = None,
+        name: str,
+        parent: GameMap | None = None,
         x: int = 0,
         y: int = 0,
         char: str = "?",
-        color: Tuple[int, int, int] = (255, 255, 255),
+        color: tuple[int, int, int] = (255, 255, 255),
         kind: EntityKind = EntityKind.UNKNOWN,
-        name: Optional[str] = None,
         blocks_movement: bool = False,
         render_order: RenderOrder = RenderOrder.CORPSE,
     ):
@@ -76,13 +74,13 @@ class Entity:
     def full_name(self) -> str:
         return f"{self.name} ({self.kind.name})"
 
-    def tick(self, sender, event: TickEvent) -> None:
+    def tick(self, _sender, event: TickEvent) -> None:
         """Called every tick. Override in subclasses.
         It should update all components.
         """
         raise NotImplementedError("Shall be implemented by subclasses.")
 
-    def place(self, x: int, y: int, game_map: Optional[GameMap] = None) -> None:
+    def place(self, x: int, y: int, game_map: GameMap | None = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
         self.x = x
         self.y = y
@@ -112,16 +110,16 @@ class Actor(Entity):
         x: int = 0,
         y: int = 0,
         char: str = "?",
-        color: Tuple[int, int, int] = (255, 255, 255),
+        color: tuple[int, int, int] = (255, 255, 255),
         kind: EntityKind = EntityKind.UNKNOWN,
-        name: Optional[str] = None,
-        ai_cls: Type[BaseAI],
+        name: str | None = None,
+        ai_cls: type[BaseAI],
         fighter: Fighter,
         inventory: Inventory,
         needs: Needs,
         stats: Stats,
         observation_log: ObservationLog,
-        signals_to_listen: List[Signal],
+        signals_to_listen: list[Signal],
         eyesight: int = 8,
     ):
         super().__init__(
@@ -132,11 +130,10 @@ class Actor(Entity):
             kind=kind,
             blocks_movement=True,
             render_order=RenderOrder.ACTOR,
+            name=name or generate_name(kind),
         )
 
-        self.name = name or generate_name(kind)
-
-        self.ai: Optional[BaseAI] = ai_cls(self)
+        self.ai: BaseAI | None = ai_cls(self)
 
         self.fighter = fighter
         self.fighter.parent = self
@@ -176,7 +173,7 @@ class Actor(Entity):
 
         self.explored |= self.visible
 
-    def tick(self, sender, event: TickEvent) -> None:
+    def tick(self, _sender, event: TickEvent) -> None:
         # Make ai take its turn.
         # TODO a hack but ok for now
         if self.char != "@" and self.ai:
@@ -201,16 +198,16 @@ class Actor(Entity):
     def can_see(self, target_x: int, target_y: int) -> bool:
         return self.is_alive and self.visible[target_x, target_y]
 
-    def handle_event(self, sender, event: BaseMapEvent):
+    def handle_event(self, _sender, event: BaseMapEvent):
         if not self.can_see(event.x, event.y):
             return
         # print(f"{self.name} observes {event}")
         match event:
             case AttackEvent(_, _, actor, target):
                 if actor == self:
-                    self.observation_log.add_observation(f"I attacked {target.full_name}", event)
+                    self.observation_log.add_observation(f"I attacked {target.full_name}", event=event)
                 if target == self:
-                    self.observation_log.add_observation(f"I was attacked by {actor.full_name}", event)
+                    self.observation_log.add_observation(f"I was attacked by {actor.full_name}", event=event)
             case MoveEvent(_, _, actor, dx, dy):
                 print(f"{actor.name} moved by ({dx}, {dy})")
             case _:
@@ -237,8 +234,8 @@ class Item(Entity):
         x: int = 0,
         y: int = 0,
         char: str = "?",
-        color: Tuple[int, int, int] = (255, 255, 255),
-        name: Optional[str] = None,
+        color: tuple[int, int, int] = (255, 255, 255),
+        name: str,
         consumable: Consumable,
     ):
         super().__init__(
@@ -263,8 +260,8 @@ class Building(Entity):
         x: int = 0,
         y: int = 0,
         char: str = "?",
-        color: Tuple[int, int, int] = (255, 255, 255),
-        name: Optional[str] = None,
+        color: tuple[int, int, int] = (255, 255, 255),
+        name: str,
         interactable: Interactable,
     ):
         super().__init__(

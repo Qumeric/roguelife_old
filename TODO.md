@@ -24,3 +24,4 @@ This is un unsorted todo list where I will write every idea I have
 * Maybe think about using special game time instead of Python datetime.
 * Maybe use some kind of DSL to describe creatures? Shall focus on easy generation of many different ones. Although python is close enough to DSL already lol.
 * Add limited integer class. There are many things which can go from 0 to some value and act the same way. They can also be used for rendering in unified fashion.
+* Everything has backlink to parent now. Maybe it's a bad idea because it violates composition/encapsulation. And also creates typing issues occasionally.

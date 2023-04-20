@@ -16,10 +16,12 @@ vowels = "aeiou"
 
 # Function to generate names based on templates
 def generate_name(kind: Union["EntityKind", str]) -> str:
-    if type(kind) is str:
+    if isinstance(kind, str):
         kind_str = kind
-    else:
+    elif isinstance(kind, EntityKind):
         kind_str = kind.name
+    else:
+        raise RuntimeError(f"Invalid type of kind: {type(kind)}")
     match kind_str:
         case "ORC":
             template = random.choice(orc_templates)

@@ -1,20 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from events import (
     AttackEvent,
     BuildingInteractEvent,
     DropEvent,
     MoveEvent,
-    PickupEvent,
-    UseEvent,
     attack_signal,
     building_interact_signal,
     drop_signal,
     move_signal,
-    pickup_signal,
-    use_signal,
 )
 import color
 import exceptions
@@ -49,9 +45,6 @@ class Action:
 class PickupAction(Action):
     """Pickup an item and add it to the inventory, if there is room for it."""
 
-    def __init__(self, entity: Actor):
-        super().__init__(entity)
-
     def perform(self) -> None:
         actor_location_x = self.entity.x
         actor_location_y = self.entity.y
@@ -73,7 +66,7 @@ class PickupAction(Action):
 
 
 class ItemAction(Action):
-    def __init__(self, entity: Actor, item: Item, target_xy: Optional[Tuple[int, int]] = None):
+    def __init__(self, entity: Actor, item: Item, target_xy: tuple[int, int] | None = None):
         super().__init__(entity)
         self.item = item
         if not target_xy:
@@ -81,7 +74,7 @@ class ItemAction(Action):
         self.target_xy = target_xy
 
     @property
-    def target_actor(self) -> Optional[Actor]:
+    def target_actor(self) -> Actor | None:
         """Return the actor at this actions destination."""
         return self.engine.game_map.get_actor_at_location(*self.target_xy)
 
@@ -109,22 +102,22 @@ class ActionWithDirection(Action):
         self.dy = dy
 
     @property
-    def dest_xy(self) -> Tuple[int, int]:
+    def dest_xy(self) -> tuple[int, int]:
         """Returns this actions destination."""
         return self.entity.x + self.dx, self.entity.y + self.dy
 
     @property
-    def blocking_entity(self) -> Optional[Entity]:
+    def blocking_entity(self) -> Entity | None:
         """Return the blocking entity at this actions destination.."""
         return self.engine.game_map.get_blocking_entity_at_location(*self.dest_xy)
 
     @property
-    def target_actor(self) -> Optional[Actor]:
+    def target_actor(self) -> Actor | None:
         """Return the actor at this actions destination."""
         return self.engine.game_map.get_actor_at_location(*self.dest_xy)
 
     @property
-    def target_building(self) -> Optional[Building]:
+    def target_building(self) -> Building | None:
         """Return the building at this actions destination."""
         return self.engine.game_map.get_building_at_location(*self.dest_xy)
 
@@ -211,8 +204,8 @@ class MovementAction(ActionWithDirection):
 class BumpAction(ActionWithDirection):
     def perform(self) -> None:
         if self.target_actor:
-            return MeleeAction(self.entity, self.dx, self.dy).perform()
+            MeleeAction(self.entity, self.dx, self.dy).perform()
         elif self.target_building:
-            return BuildingInteractAction(self.entity, self.dx, self.dy).perform()
+            BuildingInteractAction(self.entity, self.dx, self.dy).perform()
         else:
-            return MovementAction(self.entity, self.dx, self.dy).perform()
+            MovementAction(self.entity, self.dx, self.dy).perform()

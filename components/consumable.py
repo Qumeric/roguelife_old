@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from components.base_component import BaseComponent
 from exceptions import Impossible
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Consumable(BaseComponent):
     parent: Item
 
-    def get_action(self, consumer: Actor) -> Optional[ActionOrHandler]:
+    def get_action(self, consumer: Actor) -> ActionOrHandler | None:
         """Try to return the action for this item."""
         return actions.ItemAction(consumer, self.parent)
 
@@ -32,12 +32,10 @@ class Consumable(BaseComponent):
         """Remove the consumed item from its containing inventory."""
         item = self.parent
         inventory = item.parent
-        actor = inventory.parent
 
         if isinstance(inventory, components.inventory.Inventory):
             inventory.items.remove(item)
-
-        actor.observation_log.add_observation(f"I consumed the {self.parent.name}")
+            inventory.parent.observation_log.add_observation(f"I consumed the {self.parent.name}")
 
 
 class Food(Consumable):
@@ -107,7 +105,9 @@ class FireballDamageConsumable(Consumable):
         for actor in self.engine.game_map.actors:
             if actor.distance(*target_xy) <= self.radius:
                 # TODO change to event
-                self.add_observation(f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!")
+                self.engine.add_observation(
+                    f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!"
+                )
                 actor.fighter.take_damage(self.damage)
                 targets_hit = True
 
@@ -146,7 +146,7 @@ class LightningDamageConsumable(Consumable):
 
         if target:
             # TODO change to event
-            self.add_observation(
+            self.engine.add_observation(
                 f"A lighting bolt strikes the {target.name} with a loud thunder, for {self.damage} damage!"
             )
             target.fighter.take_damage(self.damage)

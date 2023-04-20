@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from components import ObservationLog
+    from components.observation_log import ObservationLog
     from engine import Engine
     from entity import Actor, Entity
     from game_map import GameMap

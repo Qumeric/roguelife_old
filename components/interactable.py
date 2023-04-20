@@ -2,20 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from random import randint
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from components.base_component import BaseComponent
 from events import BuildingInteractEvent, building_interact_signal
-from exceptions import Impossible
-from input_handlers import ActionOrHandler, AreaRangedAttackHandler, SingleRangedAttackHandler
 import actions
-import color
-import components.ai
-import components.inventory
 import entity_factories
 
 if TYPE_CHECKING:
-    from entity import Actor, Building
+    from entity import Building
 
 
 class Interactable(BaseComponent):
@@ -71,7 +66,7 @@ class TreeInteractable(Interactable):
             y = tree.y + dy * sy
 
             if game_map.can_spawn_at(x, y):
-                apple = entity_factories.spawn_apple(
+                entity_factories.spawn_apple(
                     game_map,
                     x,
                     y,

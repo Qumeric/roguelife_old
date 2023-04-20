@@ -1,6 +1,5 @@
 from datetime import timedelta
 from random import randint
-from typing import TYPE_CHECKING
 
 from components import consumable
 from components.ai import AllyHuman, HostileEnemy

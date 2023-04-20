@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from components.base_component import ActorComponent
 
@@ -13,7 +13,7 @@ class Inventory(ActorComponent):
 
     def __init__(self, capacity: int):
         self.capacity = capacity
-        self.items: List[Item] = []
+        self.items: list[Item] = []
 
     def drop(self, item: Item) -> None:
         """

@@ -3,7 +3,6 @@ import traceback
 
 import tcod
 
-import color
 import constants
 import exceptions
 import input_handlers

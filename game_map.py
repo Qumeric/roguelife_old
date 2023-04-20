@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Iterator, Optional
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING
 
 from tcod.console import Console
 import numpy as np
@@ -50,21 +51,21 @@ class GameMap:
         self,
         location_x: int,
         location_y: int,
-    ) -> Optional[Entity]:
+    ) -> Entity | None:
         for entity in self.entities:
             if entity.blocks_movement and entity.x == location_x and entity.y == location_y:
                 return entity
 
         return None
 
-    def get_actor_at_location(self, x: int, y: int) -> Optional[Actor]:
+    def get_actor_at_location(self, x: int, y: int) -> Actor | None:
         for actor in self.actors:
             if actor.x == x and actor.y == y:
                 return actor
 
         return None
 
-    def get_building_at_location(self, x: int, y: int) -> Optional[Building]:
+    def get_building_at_location(self, x: int, y: int) -> Building | None:
         for building in self.buildings:
             if building.x == x and building.y == y:
                 return building

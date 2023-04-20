@@ -5,20 +5,15 @@ import lzma
 import pickle
 
 from tcod.console import Console
-from tcod.map import compute_fov
 
-from game_time import tick as global_tick
 from render_functions import render_bar, render_names_at_mouse_location
 import color
 import constants
-import exceptions
 
 if TYPE_CHECKING:
     from entity import Actor
-    from events import Event
+    from events import BaseMapEvent
     from game_map import GameMap
-
-from random import random
 
 
 class Engine:
@@ -49,6 +44,6 @@ class Engine:
             f.write(save_data)
 
     def add_observation(
-        self, observation: str, fg: Tuple[int, int, int] = color.white, event: Optional[BaseEvent] = None
+        self, observation: str, fg: tuple[int, int, int] = color.white, event: BaseMapEvent | None = None
     ):
-        self.player.observation_log.add_observation(observation, event)
+        self.player.observation_log.add_observation(observation, fg, event)

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, List, Tuple
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 import random
 
+import numpy as np
 import tcod
+import tcod.noise
 
 from game_map import GameMap
 import entity_factories
@@ -21,14 +24,14 @@ class RectangularRoom:
         self.y2 = y + height
 
     @property
-    def center(self) -> Tuple[int, int]:
+    def center(self) -> tuple[int, int]:
         center_x = int((self.x1 + self.x2) / 2)
         center_y = int((self.y1 + self.y2) / 2)
 
         return center_x, center_y
 
     @property
-    def inner(self) -> Tuple[slice, slice]:
+    def inner(self) -> tuple[slice, slice]:
         """Return the inner area of this room as a 2D array index."""
         return slice(self.x1 + 1, self.x2), slice(self.y1 + 1, self.y2)
 
@@ -41,7 +44,7 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, maximum_monsters: in
     number_of_monsters = random.randint(0, maximum_monsters)
     number_of_items = random.randint(0, maximum_items)
 
-    for i in range(number_of_monsters):
+    for _ in range(number_of_monsters):
         x = random.randint(room.x1 + 1, room.x2 - 1)
         y = random.randint(room.y1 + 1, room.y2 - 1)
 
@@ -51,7 +54,7 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, maximum_monsters: in
             else:
                 entity_factories.spawn_troll(dungeon, x, y)
 
-    for i in range(number_of_items):
+    for _ in range(number_of_items):
         x = random.randint(room.x1 + 1, room.x2 - 1)
         y = random.randint(room.y1 + 1, room.y2 - 1)
 
@@ -68,7 +71,7 @@ def place_entities(room: RectangularRoom, dungeon: GameMap, maximum_monsters: in
                 entity_factories.spawn_lightning_scroll(dungeon, x, y)
 
 
-def tunnel_between(start: Tuple[int, int], end: Tuple[int, int]) -> Iterator[Tuple[int, int]]:
+def tunnel_between(start: tuple[int, int], end: tuple[int, int]) -> Iterator[tuple[int, int]]:
     """Return an L-shaped tunnel between these two points."""
     x1, y1 = start
     x2, y2 = end
@@ -80,10 +83,8 @@ def tunnel_between(start: Tuple[int, int], end: Tuple[int, int]) -> Iterator[Tup
         corner_x, corner_y = x1, y2
 
     # Generate the coordinates for this tunnel.
-    for x, y in tcod.los.bresenham((x1, y1), (corner_x, corner_y)).tolist():
-        yield x, y
-    for x, y in tcod.los.bresenham((corner_x, corner_y), (x2, y2)).tolist():
-        yield x, y
+    yield from tcod.los.bresenham((x1, y1), (corner_x, corner_y)).tolist()
+    yield from tcod.los.bresenham((corner_x, corner_y), (x2, y2)).tolist()
 
 
 def generate_dungeon(
@@ -100,9 +101,9 @@ def generate_dungeon(
     player = engine.player
     dungeon = GameMap(engine, map_width, map_height, entities=[player])
 
-    rooms: List[RectangularRoom] = []
+    rooms: list[RectangularRoom] = []
 
-    for r in range(max_rooms):
+    for _ in range(max_rooms):
         room_width = random.randint(room_min_size, room_max_size)
         room_height = random.randint(room_min_size, room_max_size)
 
@@ -136,19 +137,15 @@ def generate_dungeon(
     return dungeon
 
 
-import numpy as np
-import tcod.noise
-
-
-def generate_heightmap(
-    width: int, height: int, scale: float, octaves: int, persistence: float, lacunarity: float
-) -> np.ndarray:
+def generate_heightmap(width: int, height: int, scale: float, octaves: int, lacunarity: float) -> np.ndarray:
     shape = (width, height)
 
     noise = tcod.noise.Noise(
         dimensions=2,
         algorithm=tcod.NOISE_SIMPLEX,
         implementation=0,
+        octaves=octaves,
+        lacunarity=lacunarity,
         seed=42,
     )
     samples = noise[tcod.noise.grid(shape, scale, origin=(0, 0))]
@@ -166,21 +163,19 @@ def generate_island(
     maximum_items: int = 5,
     maximum_allies: int = 5,
 ):
+    """Generate a new island map."""
+
     height_map = generate_heightmap(
         width=map_width,
         height=map_height,
         scale=0.09,
         octaves=6,
-        persistence=0.5,
         lacunarity=2.0,
     )
 
     x_center = map_width // 2
     y_center = map_height // 2
 
-    ratio = map_width / map_height
-
-    """Generate a new island map."""
     player = engine.player
     island = GameMap(engine, map_width, map_height, entities=[player])
     for x in range(map_width):
@@ -198,7 +193,7 @@ def generate_island(
                 island.tiles[x, y] = tile_types.sand
             elif h > 0.7:
                 island.tiles[x, y] = tile_types.mountain
-            elif h > 0.4 and h < 0.7:
+            elif 0.4 < h < 0.7:
                 island.tiles[x, y] = tile_types.forrest
             else:
                 island.tiles[x, y] = tile_types.grass

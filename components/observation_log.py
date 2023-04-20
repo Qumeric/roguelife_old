@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Reversible
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 import textwrap
 
 from components.base_component import BaseComponent
@@ -9,8 +10,12 @@ from game_time import current_datetime
 import color
 
 if TYPE_CHECKING:
-    from entity import Actor, Item
-    from events import BaseMapEvent
+    from datetime import datetime
+
+    import tcod.console
+
+    from entity import Actor
+    from events import BaseEvent
 
 
 @dataclass
@@ -18,12 +23,12 @@ class Observation:
     """An observation made by an actor."""
 
     text: str
-    event: Optional[BaseMapEvent]
-    fg: Tuple[int, int, int] = color.white
-    datetime: datetime = field(default_factory=current_datetime)
+    event: BaseEvent | None
+    fg: tuple[int, int, int] = color.white
+    gametime: datetime = field(default_factory=current_datetime)
 
     def __str__(self) -> str:
-        formatted_datime = self.datetime.strftime("%y-%m-%d %H:%M")
+        formatted_datime = self.gametime.strftime("%y-%m-%d %H:%M")
         return f"[{formatted_datime}]: {self.text}"
 
 
@@ -32,16 +37,16 @@ class ObservationLog(BaseComponent):
 
     def __init__(self, capacity: int) -> None:
         self.capacity = capacity
-        self.observations: List[Event] = []
+        self.observations: list[Observation] = []
 
     def add_observation(
-        self, text: str, fg: Tuple[int, int, int] = color.white, event: Optional[BaseMapEvent] = None
+        self, text: str, fg: tuple[int, int, int] = color.white, event: BaseEvent | None = None
     ) -> None:
         """Add a observation to this log.
 
         `text` is the message text, `fg` is the text color.
         """
-        self.observations.append(Observation(text, event))
+        self.observations.append(Observation(text, event, fg))
 
         if len(self.observations) > self.capacity:
             self.observations.pop(0)

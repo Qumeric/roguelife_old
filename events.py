@@ -7,16 +7,20 @@ from typing import TYPE_CHECKING
 from blinker import Signal
 
 if TYPE_CHECKING:
-    from entity import Actor, Building, Entity
+    from entity import Actor, Building, Entity, Item
+
+
+class BaseEvent:
+    pass
 
 
 @dataclass
-class TickEvent:
+class TickEvent(BaseEvent):
     time: datetime
 
 
 @dataclass
-class BaseMapEvent:
+class BaseMapEvent(BaseEvent):
     x: int
     y: int
 
@@ -43,7 +47,7 @@ class PickupEvent(ActorEvent):
 
 @dataclass
 class DropEvent(ActorEvent):
-    item: Actor
+    item: Item
 
 
 @dataclass

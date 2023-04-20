@@ -1,8 +1,6 @@
 """Handle the loading and initialization of game sessions."""
 from __future__ import annotations
 
-from typing import Optional
-import copy
 import lzma
 import pickle
 import traceback
@@ -10,7 +8,7 @@ import traceback
 import tcod
 
 from engine import Engine
-from procgen import generate_dungeon, generate_island
+from procgen import generate_island
 import color
 import constants
 import entity_factories
@@ -22,12 +20,6 @@ background_image = tcod.image.load("menu_background.png")[:, :, :3]
 
 def new_game() -> Engine:
     """Return a brand new game session as an Engine instance."""
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
-
-    max_monsters_per_room = 2
-    max_items_per_room = 2
 
     player = entity_factories.create_player()
 
@@ -93,10 +85,11 @@ class MainMenu(input_handlers.BaseEventHandler):
                 bg_blend=tcod.BKGND_ALPHA(64),
             )
 
-    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[input_handlers.BaseEventHandler]:
+    def ev_keydown(self, event: tcod.event.KeyDown) -> input_handlers.BaseEventHandler | None:
         if event.sym in (tcod.event.K_q, tcod.event.K_ESCAPE):
             raise SystemExit()
-        elif event.sym == tcod.event.K_c:
+
+        if event.sym == tcod.event.K_c:
             try:
                 return input_handlers.MainGameEventHandler(load_game("savegame.sav"))
             except FileNotFoundError:

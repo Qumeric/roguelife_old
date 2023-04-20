@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import TYPE_CHECKING, List
+from typing import cast
 
 from components.base_component import ActorComponent
-
-if TYPE_CHECKING:
-    from entity import Actor, Item
+from entity import Actor
 
 
 @dataclass
@@ -21,7 +19,7 @@ class Stats(ActorComponent):
     stamina: int
 
     # TODO will be set later but is it ok to have dataclass?
-    parent: Actor = None
+    parent: Actor = cast(Actor, None)
     # TODO how often does reflection happen?
     reflection = 10
 

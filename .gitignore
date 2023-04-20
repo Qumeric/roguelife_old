@@ -15,3 +15,6 @@ venv
 
 # Saved games
 *.sav
+
+# mypy
+.mypy_cache
