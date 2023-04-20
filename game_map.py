@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import Iterable, Iterator, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable, Iterator, Optional
 
-import numpy as np
 from tcod.console import Console
+import numpy as np
 
-from entity import Actor, Item, Building
-import tile_types
-
+from entity import Actor, Building, Item
 from events import SpawnEvent, spawn_signal
+import tile_types
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -22,12 +21,17 @@ class GameMap:
         self.entities = set(entities)
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
 
-        self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see
-        self.explored = np.full((width, height), fill_value=False, order="F")  # Tiles the player has seen before
-
     @property
     def game_map(self) -> GameMap:
         return self
+
+    @property
+    def visible(self) -> np.ndarray:
+        return self.engine.player.visible
+
+    @property
+    def explored(self) -> np.ndarray:
+        return self.engine.player.explored
 
     @property
     def actors(self) -> Iterator[Actor]:

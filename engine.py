@@ -28,55 +28,6 @@ class Engine:
         self.mouse_location = (0, 0)
         self.player = player
 
-    def handle_enemy_turns(self) -> None:
-        for entity in self.game_map.actors:
-            if entity == self.player:
-                continue
-            if entity.ai:
-                try:
-                    entity.ai.perform()
-                except exceptions.Impossible:
-                    pass  # Ignore impossible action exceptions from AI.
-
-    # TODO handle player in the same way as other actors?
-    def update_fov(self) -> None:
-        """Recompute the visible area based on the players point of view."""
-        self.game_map.visible[:] = compute_fov(
-            self.game_map.tiles["transparent"],
-            (self.player.x, self.player.y),
-            radius=8,
-        )
-        # If a tile is "visible" it should be added to "explored".
-        self.game_map.explored |= self.game_map.visible
-
-        for actor in self.game_map.actors:
-            actor.visible[:] = compute_fov(
-                self.game_map.tiles["transparent"],
-                (actor.x, actor.y),
-                radius=actor.eyesight,
-            )
-
-            actor.explored |= actor.visible
-
-    def handle_reflection(self) -> None:
-        for actor in self.game_map.actors:
-            if random() < 0.01:
-                actor.observe_needs()
-            if random() < 0.01:
-                actor.observe_stats()
-
-    def update_needs(self) -> None:
-        for actor in self.game_map.actors:
-            actor.needs.update()
-
-    def tick(self):
-        global_tick()
-        # TODO this is clunky, just send somethink like tick_signal and let all entities listen to it
-        self.handle_enemy_turns()
-        self.update_fov()
-        self.update_needs()
-        self.handle_reflection()
-
     def render(self, console: Console) -> None:
         self.game_map.render(console)
 

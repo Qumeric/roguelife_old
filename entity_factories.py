@@ -18,7 +18,7 @@ from game_map import GameMap
 visible_signals = [spawn_signal, attack_signal, pickup_signal, move_signal, drop_signal]
 
 
-def create_player(x: int = 0, y: int = 0):
+def create_player(x: int = 0, y: int = 0) -> Actor:
     """A special case.
     Don't forget to spawn later!
     """

@@ -10,7 +10,7 @@ import color
 
 if TYPE_CHECKING:
     from entity import Actor, Item
-    from events import BaseEvent
+    from events import BaseMapEvent
 
 
 @dataclass
@@ -18,7 +18,7 @@ class Observation:
     """An observation made by an actor."""
 
     text: str
-    event: Optional[BaseEvent]
+    event: Optional[BaseMapEvent]
     fg: Tuple[int, int, int] = color.white
     datetime: datetime = field(default_factory=current_datetime)
 
@@ -35,7 +35,7 @@ class ObservationLog(BaseComponent):
         self.observations: List[Event] = []
 
     def add_observation(
-        self, text: str, fg: Tuple[int, int, int] = color.white, event: Optional[BaseEvent] = None
+        self, text: str, fg: Tuple[int, int, int] = color.white, event: Optional[BaseMapEvent] = None
     ) -> None:
         """Add a observation to this log.
 

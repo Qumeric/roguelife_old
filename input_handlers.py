@@ -6,6 +6,7 @@ import os
 import tcod
 
 from actions import Action, BumpAction, PickupAction, WaitAction
+from game_time import tick
 import actions
 import color
 import exceptions
@@ -139,7 +140,7 @@ class EventHandler(BaseEventHandler):
             self.engine.add_observation(exc.args[0], color.impossible)
             return False  # Skip enemy turn on exceptions.
 
-        self.engine.tick()
+        tick()
         return True
 
     def ev_mousemotion(self, event: tcod.event.MouseMotion) -> None:

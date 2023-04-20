@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 from enum import Enum, auto
+from random import random
 from typing import TYPE_CHECKING, Optional, Tuple, Type, TypeVar, Union
 import copy
 import math
 
+from tcod.map import compute_fov
 import numpy as np
 import tcod
 
 from entity_kind import EntityKind
-from events import AttackEvent, BaseEvent, MoveEvent, PickupEvent, UseEvent
+from events import AttackEvent, BaseMapEvent, MoveEvent, PickupEvent, TickEvent, UseEvent
+from exceptions import Impossible
+from game_time import tick_signal
 from name_generator import generate_name
 from render_order import RenderOrder
 import constants
@@ -62,6 +66,8 @@ class Entity:
             self.parent = parent
             parent.entities.add(self)
 
+        tick_signal.connect(receiver=self.tick, sender=self)
+
     @property
     def game_map(self) -> GameMap:
         return self.parent.game_map
@@ -69,6 +75,12 @@ class Entity:
     @property
     def full_name(self) -> str:
         return f"{self.name} ({self.kind.name})"
+
+    def tick(self, sender, event: TickEvent) -> None:
+        """Called every tick. Override in subclasses.
+        It should update all components.
+        """
+        raise NotImplementedError("Shall be implemented by subclasses.")
 
     def place(self, x: int, y: int, game_map: Optional[GameMap] = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
@@ -143,15 +155,43 @@ class Actor(Entity):
 
         self.visible = np.full(
             (constants.map_width, constants.map_height), fill_value=False, order="F"
-        )  # Tiles the actor can currently see. Updated each turn by the engine.
+        )  # Tiles the actor can currently see.
         self.explored = np.full(
             (constants.map_width, constants.map_height), fill_value=False, order="F"
-        )  # Tiles the actor has seen before. Updated each turn by the engine.
+        )  # Tiles the actor has seen before.
 
         self.eyesight = eyesight
 
         for signal in signals_to_listen:
             signal.connect(self.handle_event)
+
+        tick_signal.connect(self.tick)
+
+    def _update_fov(self) -> None:
+        self.visible[:] = compute_fov(
+            self.game_map.tiles["transparent"],
+            (self.x, self.y),
+            radius=self.eyesight,
+        )
+
+        self.explored |= self.visible
+
+    def tick(self, sender, event: TickEvent) -> None:
+        # Make ai take its turn.
+        # TODO a hack but ok for now
+        if self.char != "@" and self.ai:
+            try:
+                self.ai.perform()
+            except Impossible:
+                pass  # Ignore impossible action exceptions from AI.
+
+        self._update_fov()
+
+        self.needs.update()
+        if random() < 0.01:
+            self.observe_needs()
+        if random() < 0.01:
+            self.observe_stats()
 
     @property
     def is_alive(self) -> bool:
@@ -161,7 +201,7 @@ class Actor(Entity):
     def can_see(self, target_x: int, target_y: int) -> bool:
         return self.is_alive and self.visible[target_x, target_y]
 
-    def handle_event(self, sender, event: BaseEvent):
+    def handle_event(self, sender, event: BaseMapEvent):
         if not self.can_see(event.x, event.y):
             return
         # print(f"{self.name} observes {event}")

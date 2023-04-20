@@ -1,6 +1,7 @@
 {
   "conventionalCommits.scopes": [
     "Observations",
-    "World Generation"
+    "World Generation",
+    "Components"
   ]
 }

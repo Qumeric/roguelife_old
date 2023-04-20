@@ -11,18 +11,23 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class BaseEvent:
+class TickEvent:
+    time: datetime
+
+
+@dataclass
+class BaseMapEvent:
     x: int
     y: int
 
 
 @dataclass
-class ActorEvent(BaseEvent):
+class ActorEvent(BaseMapEvent):
     actor: Actor
 
 
 @dataclass
-class SpawnEvent(BaseEvent):
+class SpawnEvent(BaseMapEvent):
     entity: Entity
 
 

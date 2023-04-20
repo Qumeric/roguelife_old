@@ -46,7 +46,7 @@ def new_game() -> Engine:
     engine.game_map = generate_island(constants.map_width, constants.map_height, engine)
     player.parent = engine.game_map
     engine.game_map.entities.add(player)
-    engine.update_fov()
+    player._update_fov()
 
     return engine
 
