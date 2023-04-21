@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from numpy.typing import NDArray
 from tcod.console import Console
 import numpy as np
 
@@ -27,11 +28,11 @@ class GameMap:
         return self
 
     @property
-    def visible(self) -> np.ndarray:
+    def visible(self) -> NDArray[Any]:
         return self.engine.player.visible
 
     @property
-    def explored(self) -> np.ndarray:
+    def explored(self) -> NDArray[Any]:
         return self.engine.player.explored
 
     @property
@@ -108,3 +109,15 @@ class GameMap:
             self,
             event=SpawnEvent(entity.x, entity.y, entity),
         )
+
+    def get_entities_at_location(self, x: int, y: int) -> list[Entity]:
+        return [entity for entity in self.entities if entity.x == x and entity.y == y]
+
+    def get_names_at_location(self, x: int, y: int) -> str:
+        if not self.in_bounds(x, y) or not self.visible[x, y]:
+            return ""
+
+        entities = self.get_entities_at_location(x, y)
+        names = ", ".join(map(lambda entity: entity.name, entities))
+
+        return names.capitalize()

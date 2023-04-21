@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from random import random
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 import math
 
 from tcod.map import compute_fov
@@ -19,7 +18,7 @@ import constants
 if TYPE_CHECKING:
     from blinker import Signal
 
-    from components.ai import BaseAI
+    from components.ai import BaseAI, IntelligentCreature
     from components.consumable import Consumable
     from components.fighter import Fighter
     from components.interactable import Interactable
@@ -76,7 +75,7 @@ class Entity(ABC):
         return f"{self.name} ({self.kind.name})"
 
     @abstractmethod
-    def tick(self, _sender, event: TickEvent) -> None:
+    def tick(self, _sender: Any, event: TickEvent) -> None:
         """Called every tick. It should update all components."""
 
     def place(self, x: int, y: int, game_map: GameMap | None = None) -> None:
@@ -100,6 +99,9 @@ class Entity(ABC):
         # Move the entity by a given amount
         self.x += dx
         self.y += dy
+
+    def __str__(self):
+        return f"{self.name} ({self.kind.name})"
 
 
 class Actor(Entity):
@@ -170,7 +172,7 @@ class Actor(Entity):
 
         self.explored |= self.visible
 
-    def tick(self, _sender, event: TickEvent) -> None:
+    def tick(self, _sender: Any, event: TickEvent) -> None:
         # Make ai take its turn.
         # TODO a hack but ok for now
         if self.char != "@" and self.ai:
@@ -182,10 +184,6 @@ class Actor(Entity):
         self._update_fov()
 
         self.needs.update()
-        if random() < 0.01:
-            self.observe_needs()
-        if random() < 0.01:
-            self.observe_stats()
 
     @property
     def is_alive(self) -> bool:
@@ -195,7 +193,7 @@ class Actor(Entity):
     def can_see(self, target_x: int, target_y: int) -> bool:
         return self.is_alive and self.visible[target_x, target_y]
 
-    def handle_event(self, _sender, event: BaseMapEvent):
+    def handle_event(self, _sender: Any, event: BaseMapEvent):
         if not self.can_see(event.x, event.y):
             return
         # print(f"{self.name} observes {event}")
@@ -210,18 +208,11 @@ class Actor(Entity):
             case _:
                 print("Unknown event type")
 
-    # TODO shall it be moved to the AI component? Same as observe_stats
-    def observe_needs(self) -> None:
-        needs_report = self.needs.report()
-        self.observation_log.add_observation(
-            text=f"I am thinking about how I feel and observe the following: {needs_report}"
-        )
 
-    def observe_stats(self) -> None:
-        stats_report = self.stats.report()
-        self.observation_log.add_observation(
-            text=f"I am thinking about who I am and observe the following: {stats_report}"
-        )
+class IntelligentActor(Actor):
+    """A specific actor which has intelligent ai."""
+
+    ai: IntelligentCreature
 
 
 class Item(Entity):
@@ -249,7 +240,7 @@ class Item(Entity):
         self.consumable = consumable
         self.consumable.parent = self
 
-    def tick(self, _sender, event: TickEvent) -> None:
+    def tick(self, _sender: Any, event: TickEvent) -> None:
         pass
 
 
@@ -278,5 +269,5 @@ class Building(Entity):
         self.interactable = interactable
         self.interactable.parent = self
 
-    def tick(self, _sender, event: TickEvent) -> None:
+    def tick(self, _sender: Any, event: TickEvent) -> None:
         self.interactable.update()

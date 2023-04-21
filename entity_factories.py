@@ -28,7 +28,7 @@ def create_player(x: int = 0, y: int = 0) -> Actor:
         color=(255, 255, 255),
         kind=EntityKind.PLAYER,
         name="Player",
-        ai_cls=HostileEnemy,
+        ai_cls=AllyHuman,
         fighter=Fighter(hp=30, defense=2, power=5),
         inventory=Inventory(capacity=26),
         needs=Needs(max_hunger=100, max_thirst=100, max_sleepiness=1000, max_lonliness=1000),

@@ -17,7 +17,7 @@ import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Actor, Building, Entity, Item
+    from entity import Actor, IntelligentActor, Building, Entity, Item
 
 from abc import ABC, abstractmethod
 
@@ -25,6 +25,7 @@ from abc import ABC, abstractmethod
 class Action(ABC):
     def __init__(self, entity: Actor) -> None:
         super().__init__()
+        self.instant = False
         self.entity = entity
 
     @property
@@ -42,6 +43,12 @@ class Action(ABC):
 
         This method must be overridden by Action subclasses.
         """
+
+
+class IntelligentAction(Action):
+    """An action that requires an intelligent actor."""
+
+    entity: IntelligentActor
 
 
 class PickupAction(Action):
@@ -65,6 +72,42 @@ class PickupAction(Action):
                 return
 
         raise exceptions.Impossible("There is nothing here to pick up.")
+
+
+class InstantAction(IntelligentAction):
+    """An action that is performed instantly."""
+
+    def __init__(self, entity: IntelligentActor):
+        super().__init__(entity)
+        self.instant = True
+
+
+class LookAroundAction(IntelligentAction):
+    """Look around the player and display the names of all entities in view."""
+
+    def perform(self) -> None:
+        self.entity.ai.look_around()
+
+
+class ObserveStatsAction(IntelligentAction):
+    """Observe the stats of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_stats()
+
+
+class ObserveNeedsAction(IntelligentAction):
+    """Observe the needs of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_needs()
+
+
+class ObserveInventoryAction(IntelligentAction):
+    """Observe the inventory of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_inventory()
 
 
 class ItemAction(Action):

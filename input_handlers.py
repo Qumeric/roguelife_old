@@ -6,7 +6,16 @@ import os
 
 import tcod
 
-from actions import Action, BumpAction, PickupAction, WaitAction
+from actions import (
+    Action,
+    BumpAction,
+    LookAroundAction,
+    ObserveInventoryAction,
+    ObserveNeedsAction,
+    ObserveStatsAction,
+    PickupAction,
+    WaitAction,
+)
 from game_time import tick
 import actions
 import color
@@ -36,15 +45,6 @@ MOVE_KEYS = {
     tcod.event.K_KP_7: (-1, -1),
     tcod.event.K_KP_8: (0, -1),
     tcod.event.K_KP_9: (1, -1),
-    # Vi keys.
-    tcod.event.K_h: (-1, 0),
-    tcod.event.K_j: (0, 1),
-    tcod.event.K_k: (0, -1),
-    tcod.event.K_l: (1, 0),
-    tcod.event.K_y: (-1, -1),
-    tcod.event.K_u: (1, -1),
-    tcod.event.K_b: (-1, 1),
-    tcod.event.K_n: (1, 1),
 }
 
 WAIT_KEYS = {
@@ -135,6 +135,7 @@ class EventHandler(BaseEventHandler):
         """
         if action is None:
             return False
+        assert action is not None  # for mypy
 
         try:
             action.perform()
@@ -142,7 +143,8 @@ class EventHandler(BaseEventHandler):
             self.engine.add_observation(exc.args[0], color.impossible)
             return False  # Skip enemy turn on exceptions.
 
-        tick()
+        if not action.instant:
+            tick()
         return True
 
     def ev_mousemotion(self, event: tcod.event.MouseMotion) -> None:
@@ -398,13 +400,20 @@ class MainGameEventHandler(EventHandler):
 
         elif key == tcod.event.K_g:
             action = PickupAction(player)
-
         elif key == tcod.event.K_i:
             return InventoryActivateHandler(self.engine)
         elif key == tcod.event.K_d:
             return InventoryDropHandler(self.engine)
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
+        elif key == tcod.event.K_l:
+            return LookAroundAction(player)
+        elif key == tcod.event.K_1:
+            return ObserveStatsAction(player)
+        elif key == tcod.event.K_2:
+            return ObserveInventoryAction(player)
+        elif key == tcod.event.K_3:
+            return ObserveNeedsAction(player)
 
         # No valid key was pressed
         return action
@@ -473,7 +482,7 @@ class TextViewer(EventHandler):
 
 
 class ObservationsLogViewer(TextViewer):
-    def __init__(self, engine, actor: Actor):
+    def __init__(self, engine: Engine, actor: Actor):
         super().__init__(engine)
         self.actor = actor
         self.log_length = len(actor.observation_log.observations)

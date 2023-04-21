@@ -7,10 +7,21 @@ import random
 import numpy as np  # type: ignore
 import tcod
 
-from actions import Action, BumpAction, MeleeAction, MovementAction, WaitAction
+from actions import (
+    Action,
+    BumpAction,
+    LookAroundAction,
+    MeleeAction,
+    MovementAction,
+    ObserveInventoryAction,
+    ObserveNeedsAction,
+    ObserveStatsAction,
+    WaitAction,
+)
+import tile_types
 
 if TYPE_CHECKING:
-    from entity import Actor
+    from entity import Actor, IntelligentActor
 
 
 # TODO maybe it shall be moved from components? It is kinda weird...
@@ -49,8 +60,58 @@ class BaseAI(Action):
         return [(index[0], index[1]) for index in path]
 
 
-class AllyHuman(BaseAI):
-    def __init__(self, entity: Actor):
+class IntelligentCreature(BaseAI):
+    def look_around(self) -> None:
+        game_map = self.entity.game_map
+        fov = self.entity.visible
+
+        my_tile = game_map.tiles[self.entity.x, self.entity.y]
+        my_tile_name = tile_types.get_name(my_tile)
+
+        vision_log = [f"I am staying on {my_tile_name} at [{self.entity.x}, {self.entity.y}]. I see the following:"]
+
+        for x in range(game_map.width):
+            for y in range(game_map.height):
+                if not fov[x, y]:
+                    continue
+                entities = game_map.get_entities_at_location(x, y)
+                for entity in entities:
+                    vision_log.append(f"  - {entity} at [{x}, {y}]")
+
+        vision_text = "\n".join(vision_log)
+        self.entity.observation_log.add_observation(vision_text)
+        return
+
+    def observe_needs(self) -> None:
+        needs_report = self.entity.needs.report()
+        self.entity.observation_log.add_observation(
+            text=f"I am thinking about how I feel and observe the following: {needs_report}"
+        )
+
+    def observe_inventory(self) -> None:
+        inventory_report = self.entity.inventory.report()
+        self.entity.observation_log.add_observation(
+            text=f"I am thinking about what I have and observe the following: {inventory_report}"
+        )
+
+    def observe_stats(self) -> None:
+        stats_report = self.entity.stats.report()
+        self.entity.observation_log.add_observation(
+            text=f"I am thinking about who I am and observe the following: {stats_report}"
+        )
+
+
+class Player(IntelligentCreature):
+    def __init__(self, entity: IntelligentActor):
+        super().__init__(entity)
+        self.path: list[tuple[int, int]] = []
+
+    def perform(self):
+        pass
+
+
+class AllyHuman(IntelligentCreature):
+    def __init__(self, entity: IntelligentActor):
         super().__init__(entity)
         self.path: list[tuple[int, int]] = []
 
@@ -58,6 +119,14 @@ class AllyHuman(BaseAI):
         dest_x = random.randint(-1, 2)
         dest_y = random.randint(-1, 2)
 
+        if random.random() < 0.01:
+            return ObserveStatsAction(self.entity).perform()
+        if random.random() < 0.02:
+            return ObserveNeedsAction(self.entity).perform()
+        if random.random() < 0.03:
+            return ObserveInventoryAction(self.entity).perform()
+        if random.random() < 0.1:
+            return LookAroundAction(self.entity).perform()
         if random.random() < 0.2:
             return WaitAction(self.entity).perform()
         return MovementAction(self.entity, dest_x, dest_y).perform()
