@@ -19,6 +19,7 @@ This is un unsorted todo list where I will write every idea I have
 
 ## Bugs
 * Observations at the same turn are not always logically ordered. For example, death message may happen before 0 hp message.
+* It seems that some instant actions are not actually instant? E.g. LookAround
 
 ## General
 * Maybe think about using special game time instead of Python datetime.

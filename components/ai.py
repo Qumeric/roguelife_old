@@ -61,6 +61,8 @@ class BaseAI(Action):
 
 
 class IntelligentCreature(BaseAI):
+    entity: IntelligentActor
+
     def look_around(self) -> None:
         game_map = self.entity.game_map
         fov = self.entity.visible
@@ -74,30 +76,41 @@ class IntelligentCreature(BaseAI):
             for y in range(game_map.height):
                 if not fov[x, y]:
                     continue
-                entities = game_map.get_entities_at_location(x, y)
-                for entity in entities:
-                    vision_log.append(f"  - {entity} at [{x}, {y}]")
+                for e in game_map.get_entities_at_location(x, y):
+                    if e == self.entity:
+                        continue
+                    vision_log.append(f"  - {e} at [{x}, {y}]")
+
+                actor = game_map.get_actor_at_location(x, y)
+                if actor and actor != self.entity:
+                    is_new_relationship = self.entity.relationships.meet(actor)
+                    if is_new_relationship:
+                        self.entity.observation_log.add(f"I met {actor} at [{x}, {y}]")
 
         vision_text = "\n".join(vision_log)
-        self.entity.observation_log.add_observation(vision_text)
+        self.entity.observation_log.add(vision_text)
         return
 
     def observe_needs(self) -> None:
         needs_report = self.entity.needs.report()
-        self.entity.observation_log.add_observation(
+        self.entity.observation_log.add(
             text=f"I am thinking about how I feel and observe the following: {needs_report}"
         )
 
     def observe_inventory(self) -> None:
         inventory_report = self.entity.inventory.report()
-        self.entity.observation_log.add_observation(
+        self.entity.observation_log.add(
             text=f"I am thinking about what I have and observe the following: {inventory_report}"
         )
 
     def observe_stats(self) -> None:
         stats_report = self.entity.stats.report()
-        self.entity.observation_log.add_observation(
-            text=f"I am thinking about who I am and observe the following: {stats_report}"
+        self.entity.observation_log.add(text=f"I am thinking about who I am and observe the following: {stats_report}")
+
+    def observe_relationships(self) -> None:
+        relationships_report = self.entity.relationships.report()
+        self.entity.observation_log.add(
+            text=f"I am thinking about who I know and observe the following: {relationships_report}"
         )
 
 

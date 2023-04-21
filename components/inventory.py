@@ -35,3 +35,6 @@ class Inventory(ActorComponent):
         items = ", ".join([item.name for item in self.items])
 
         return f"I have {items}."
+
+    def update(self) -> None:
+        return super().update()

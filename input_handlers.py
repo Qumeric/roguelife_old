@@ -12,6 +12,7 @@ from actions import (
     LookAroundAction,
     ObserveInventoryAction,
     ObserveNeedsAction,
+    ObserveRelationshipsAction,
     ObserveStatsAction,
     PickupAction,
     WaitAction,
@@ -414,6 +415,8 @@ class MainGameEventHandler(EventHandler):
             return ObserveInventoryAction(player)
         elif key == tcod.event.K_3:
             return ObserveNeedsAction(player)
+        elif key == tcod.event.K_4:
+            return ObserveRelationshipsAction(player)
 
         # No valid key was pressed
         return action

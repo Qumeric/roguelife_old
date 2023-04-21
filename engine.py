@@ -11,15 +11,16 @@ import color
 import constants
 
 if TYPE_CHECKING:
-    from entity import Actor
+    from entity import IntelligentActor
     from events import BaseMapEvent
     from game_map import GameMap
 
 
 class Engine:
     game_map: GameMap
+    mouse_location: tuple[int, int]
 
-    def __init__(self, player: Actor):
+    def __init__(self, player: IntelligentActor):
         self.mouse_location = (0, 0)
         self.player = player
 
@@ -46,4 +47,4 @@ class Engine:
     def add_observation(
         self, observation: str, fg: tuple[int, int, int] = color.white, event: BaseMapEvent | None = None
     ):
-        self.player.observation_log.add_observation(observation, fg, event)
+        self.player.observation_log.add(observation, fg, event)

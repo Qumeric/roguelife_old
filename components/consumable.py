@@ -39,7 +39,7 @@ class Consumable(BaseComponent):
 
         if isinstance(inventory, components.inventory.Inventory):
             inventory.items.remove(item)
-            inventory.parent.observation_log.add_observation(f"I consumed the {self.parent.name}")
+            inventory.parent.observation_log.add(f"I consumed the {self.parent.name}")
 
 
 class Food(Consumable):

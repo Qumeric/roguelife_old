@@ -2,6 +2,7 @@
   "conventionalCommits.scopes": [
     "Observations",
     "World Generation",
-    "Components"
+    "Components",
+    "Relationships"
   ]
 }

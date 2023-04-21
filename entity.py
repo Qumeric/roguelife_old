@@ -7,6 +7,7 @@ import math
 from tcod.map import compute_fov
 import numpy as np
 
+from components.relationships import Relationships
 from entity_kind import EntityKind
 from events import AttackEvent, BaseMapEvent, MoveEvent, TickEvent
 from exceptions import Impossible
@@ -120,6 +121,7 @@ class Actor(Entity):
         needs: Needs,
         stats: Stats,
         observation_log: ObservationLog,
+        relationships: Relationships,
         signals_to_listen: list[Signal],
         eyesight: int = 8,
     ):
@@ -150,6 +152,9 @@ class Actor(Entity):
 
         self.observation_log = observation_log
         self.observation_log.parent = self
+
+        self.relationships = relationships
+        self.relationships.parent = self
 
         self.visible = np.full(
             (constants.map_width, constants.map_height), fill_value=False, order="F"
@@ -200,9 +205,9 @@ class Actor(Entity):
         match event:
             case AttackEvent(_, _, actor, target):
                 if actor == self:
-                    self.observation_log.add_observation(f"I attacked {target.full_name}", event=event)
+                    self.observation_log.add(f"I attacked {target.full_name}", event=event)
                 if target == self:
-                    self.observation_log.add_observation(f"I was attacked by {actor.full_name}", event=event)
+                    self.observation_log.add(f"I was attacked by {actor.full_name}", event=event)
             case MoveEvent(_, _, actor, dx, dy):
                 print(f"{actor.name} moved by ({dx}, {dy})")
             case _:

@@ -82,32 +82,39 @@ class InstantAction(IntelligentAction):
         self.instant = True
 
 
-class LookAroundAction(IntelligentAction):
+class LookAroundAction(InstantAction):
     """Look around the player and display the names of all entities in view."""
 
     def perform(self) -> None:
         self.entity.ai.look_around()
 
 
-class ObserveStatsAction(IntelligentAction):
+class ObserveStatsAction(InstantAction):
     """Observe the stats of the actor."""
 
     def perform(self) -> None:
         self.entity.ai.observe_stats()
 
 
-class ObserveNeedsAction(IntelligentAction):
+class ObserveNeedsAction(InstantAction):
     """Observe the needs of the actor."""
 
     def perform(self) -> None:
         self.entity.ai.observe_needs()
 
 
-class ObserveInventoryAction(IntelligentAction):
+class ObserveInventoryAction(InstantAction):
     """Observe the inventory of the actor."""
 
     def perform(self) -> None:
         self.entity.ai.observe_inventory()
+
+
+class ObserveRelationshipsAction(InstantAction):
+    """Observe the relationships of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_relationships()
 
 
 class ItemAction(Action):

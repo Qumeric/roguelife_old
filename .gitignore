@@ -21,3 +21,6 @@ venv
 
 # ruff
 .ruff_cache
+
+#env
+.env

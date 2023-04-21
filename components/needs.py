@@ -44,22 +44,22 @@ Lonliness: {self.lonliness}/{self.max_lonliness}"
         self.lonliness += 1
 
         if self.hunger >= self.max_hunger:
-            self.parent.observation_log.add_observation(text="I am starving!", event=None)
+            self.parent.observation_log.add(text="I am starving!", event=None)
             self.parent.fighter.take_damage(1)
             self.hunger = self.max_hunger
 
         if self.thirst >= self.max_thirst:
-            self.parent.observation_log.add_observation(text="I am dying of thirst!", event=None)
+            self.parent.observation_log.add(text="I am dying of thirst!", event=None)
             self.parent.fighter.take_damage(1)
             self.thirst = self.max_thirst
 
         if self.sleepiness >= self.max_sleepiness:
-            self.parent.observation_log.add_observation(text="I am extremely tired!", event=None)
+            self.parent.observation_log.add(text="I am extremely tired!", event=None)
             self.parent.fighter.take_damage(1)
             self.thirst = self.max_sleepiness
 
         if self.lonliness >= self.max_lonliness:
-            self.parent.observation_log.add_observation(text="I am extremely lonely!", event=None)
+            self.parent.observation_log.add(text="I am extremely lonely!", event=None)
             self.lonliness = self.max_lonliness
 
     # TODO unify with hp etc.
@@ -69,6 +69,6 @@ Lonliness: {self.lonliness}/{self.max_lonliness}"
         self.hunger = max(self.hunger, 0)
         self.thirst = max(self.thirst, 0)
 
-        self.parent.observation_log.add_observation(
+        self.parent.observation_log.add(
             text=f"I am less hungry and thirsty! Hunger now: {self.hunger}, Thirst now: {self.thirst}", event=None
         )

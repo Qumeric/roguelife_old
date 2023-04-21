@@ -41,7 +41,7 @@ class Fighter(ActorComponent):
         self.parent.ai = None
         self.parent.name = f"remains of {self.parent.name}"
         self.parent.render_order = RenderOrder.CORPSE
-        self.observations.add_observation(
+        self.observations.add(
             "I am dead!",
             color.death,
         )
@@ -59,12 +59,10 @@ class Fighter(ActorComponent):
 
         self._set_hp(new_hp_value)
 
-        self.observations.add_observation(
-            text=f"I healed! My HP increased by {amount_recovered} to {self.hp}", event=None
-        )
+        self.observations.add(text=f"I healed! My HP increased by {amount_recovered} to {self.hp}", event=None)
         return amount_recovered
 
     def take_damage(self, amount: int) -> None:
         self._set_hp(self.hp - amount)
 
-        self.observations.add_observation(text=f"I took damage! My HP decreased by {amount} to {self.hp}", event=None)
+        self.observations.add(text=f"I took damage! My HP decreased by {amount} to {self.hp}", event=None)

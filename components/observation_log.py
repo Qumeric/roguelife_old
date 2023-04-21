@@ -39,9 +39,7 @@ class ObservationLog(BaseComponent):
         self.capacity = capacity
         self.observations: list[Observation] = []
 
-    def add_observation(
-        self, text: str, fg: tuple[int, int, int] = color.white, event: BaseEvent | None = None
-    ) -> None:
+    def add(self, text: str, fg: tuple[int, int, int] = color.white, event: BaseEvent | None = None) -> None:
         """Add a observation to this log.
 
         `text` is the message text, `fg` is the text color.
@@ -52,6 +50,9 @@ class ObservationLog(BaseComponent):
             self.observations.pop(0)
 
         print(f"Add observation to {self.parent.name}: {text}")
+
+    def update(self) -> None:
+        return super().update()
 
     def __str__(self) -> str:
         """Represent the log as text suitable for LLMs.

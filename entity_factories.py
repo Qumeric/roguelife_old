@@ -8,8 +8,9 @@ from components.interactable import TreeInteractable
 from components.inventory import Inventory
 from components.needs import Needs
 from components.observation_log import ObservationLog
+from components.relationships import Relationships
 from components.stats import Stats
-from entity import Actor, Building, Item
+from entity import Actor, Building, IntelligentActor, Item
 from entity_kind import EntityKind
 from events import attack_signal, drop_signal, move_signal, pickup_signal, spawn_signal
 from game_map import GameMap
@@ -17,11 +18,11 @@ from game_map import GameMap
 visible_signals = [spawn_signal, attack_signal, pickup_signal, move_signal, drop_signal]
 
 
-def create_player(x: int = 0, y: int = 0) -> Actor:
+def create_player(x: int = 0, y: int = 0) -> IntelligentActor:
     """A special case.
     Don't forget to spawn later!
     """
-    return Actor(
+    return IntelligentActor(
         x=x,
         y=y,
         char="@",
@@ -34,12 +35,13 @@ def create_player(x: int = 0, y: int = 0) -> Actor:
         needs=Needs(max_hunger=100, max_thirst=100, max_sleepiness=1000, max_lonliness=1000),
         stats=Stats(age=timedelta(days=20 * 365), intelligence=10, strength=10, dexterity=10, stamina=10),
         observation_log=ObservationLog(capacity=1024),
+        relationships=Relationships(),
         signals_to_listen=visible_signals,
     )
 
 
-def spawn_human(game_map: GameMap, x: int, y: int):
-    human = Actor(
+def spawn_human(game_map: GameMap, x: int, y: int) -> IntelligentActor:
+    human = IntelligentActor(
         x=x,
         y=y,
         char="h",
@@ -62,6 +64,7 @@ def spawn_human(game_map: GameMap, x: int, y: int):
             stamina=randint(3, 15),
         ),
         observation_log=ObservationLog(capacity=512),
+        relationships=Relationships(),
         signals_to_listen=visible_signals,
     )
     game_map.spawn(human)
@@ -95,6 +98,7 @@ def spawn_orc(game_map: GameMap, x: int, y: int):
             stamina=randint(5, 17),
         ),
         observation_log=ObservationLog(capacity=512),
+        relationships=Relationships(),
         signals_to_listen=visible_signals,
     )
     game_map.spawn(orc)
@@ -125,6 +129,7 @@ def spawn_troll(game_map: GameMap, x: int, y: int):
             stamina=randint(10, 30),
         ),
         observation_log=ObservationLog(capacity=256),
+        relationships=Relationships(),
         signals_to_listen=visible_signals,
     )
     game_map.spawn(troll)
