@@ -131,6 +131,22 @@ class ObserveIdentityAction(InstantAction):
         self.entity.ai.observe_identity()
 
 
+class QueryAction(InstantAction):
+    """Query the information log for information."""
+
+    def __init__(self, entity: IntelligentActor, query: str):
+        super().__init__(entity)
+        self.query = query
+
+    def perform(self) -> None:
+        closest_texts = self.entity.observation_log.query(self.query, 3)
+        observation_text = f"When thinking about {self.query}, I remember: "
+        for text in closest_texts:
+            observation_text += f"\n - {text}"
+
+        self.entity.observation_log.add(observation_text)
+
+
 class ItemAction(Action):
     def __init__(self, entity: Actor, item: Item, target_xy: tuple[int, int] | None = None):
         super().__init__(entity)

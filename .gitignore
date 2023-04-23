@@ -22,5 +22,8 @@ venv
 # ruff
 .ruff_cache
 
+# chroma
+.chroma
+
 #env
 .env

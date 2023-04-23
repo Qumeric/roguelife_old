@@ -16,6 +16,7 @@ from actions import (
     ObserveRelationshipsAction,
     ObserveStatsAction,
     PickupAction,
+    QueryAction,
     ReflectAction,
     WaitAction,
 )
@@ -407,6 +408,8 @@ class MainGameEventHandler(EventHandler):
             return InventoryActivateHandler(self.engine)
         elif key == tcod.event.K_d:
             return InventoryDropHandler(self.engine)
+        elif key == tcod.event.K_q:
+            return InputQueryHandler(self.engine, lambda query: QueryAction(player, query).perform())
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
         elif key == tcod.event.K_l:
@@ -461,6 +464,37 @@ CURSOR_Y_KEYS = {
 }
 
 
+class InputQueryHandler(EventHandler):
+    """Handles the input of a single line of text."""
+
+    def __init__(self, engine: Engine, callback: Callable[[str], None]):
+        super().__init__(engine)
+
+        self.text: list[str] = []
+        self.callback = callback
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> ActionOrHandler | None:
+        if event.sym == tcod.event.K_BACKSPACE:
+            if len(self.text) > 0:
+                self.text.pop()
+        elif event.sym == tcod.event.K_SPACE:
+            self.text.append(" ")
+        elif event.sym == tcod.event.K_ESCAPE:
+            return MainGameEventHandler(self.engine)
+        elif event.sym == tcod.event.K_RETURN:
+            self.callback("".join(self.text))
+            return MainGameEventHandler(self.engine)
+        else:
+            self.text.append(event.sym.label)
+
+        return None
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        console.print(1, 1, "".join(self.text))
+
+
 class TextViewer(EventHandler):
     """Print the history on a larger window which can be navigated."""
 
@@ -498,7 +532,6 @@ class ObservationsLogViewer(TextViewer):
         self.cursor = self.log_length - 1
 
     def on_render(self, console: tcod.Console) -> None:
-        super().on_render(console)
         super().on_render(console)
         log_console = tcod.Console(console.width - 6, console.height - 6)
 
