@@ -19,6 +19,7 @@ from actions import (
     ObserveStatsAction,
     WaitAction,
 )
+from llm import generate_reflection
 import tile_types
 
 if TYPE_CHECKING:
@@ -115,6 +116,11 @@ class IntelligentCreature(BaseAI):
     def observe_identity(self) -> None:
         identity_report = self.entity.identity.report()
         self.entity.observation_log.add(text=f"My origin is: {identity_report}")
+
+    def reflect(self) -> None:
+        """Reflection as in 'Generative Agents' paper"""
+        reflection = generate_reflection(self.entity.name, self.entity.observation_log)
+        self.entity.observation_log.add(reflection)
 
 
 class Player(IntelligentCreature):

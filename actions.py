@@ -82,6 +82,13 @@ class InstantAction(IntelligentAction):
         self.instant = True
 
 
+class ReflectAction(InstantAction):
+    """Reflect on the current situation."""
+
+    def perform(self) -> None:
+        self.entity.ai.reflect()
+
+
 class LookAroundAction(InstantAction):
     """Look around the player and display the names of all entities in view."""
 

@@ -16,6 +16,7 @@ from actions import (
     ObserveRelationshipsAction,
     ObserveStatsAction,
     PickupAction,
+    ReflectAction,
     WaitAction,
 )
 from game_time import tick
@@ -410,6 +411,8 @@ class MainGameEventHandler(EventHandler):
             return LookHandler(self.engine)
         elif key == tcod.event.K_l:
             return LookAroundAction(player)
+        elif key == tcod.event.K_r:
+            return ReflectAction(player)
         elif key == tcod.event.K_1:
             return ObserveStatsAction(player)
         elif key == tcod.event.K_2:

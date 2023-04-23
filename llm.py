@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import jinja2
 import openai
 
+from components.observation_log import ObservationLog
 from constants import cost_saving_mode
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ promptLoader = jinja2.FileSystemLoader(searchpath="./prompts/")
 promptEnv = jinja2.Environment(loader=promptLoader)
 
 
-def get_prompt(gender: str, name: str) -> str:
+def get_identity_prompt(gender: str, name: str) -> str:
     PROMPT_FILE = "identity.md.jinja"
     template = promptEnv.get_template(PROMPT_FILE)
 
@@ -50,6 +51,17 @@ def get_prompt(gender: str, name: str) -> str:
     return template.render(templateVars)
 
 
+def get_reflection_prompt(name: str, observationLog: ObservationLog):
+    PROMPT_FILE = "reflection.md.jinja"
+    template = promptEnv.get_template(PROMPT_FILE)
+
+    templateVars: dict[str, Any] = {
+        "observations": observationLog.observations,
+    }
+
+    return template.render(templateVars)
+
+
 hardcoded_identities = [
     """
 [male] is a skilled blacksmith who found himself on the island unexpectedly. He's determined to use his abilities to contribute to the survival and prosperity of the community. [male] is known for his meticulous craftsmanship and never backs down from a challenge, even in this new and unfamiliar environment.
@@ -75,9 +87,8 @@ hardcoded_identities = [
 ]
 
 
-# type: ignore
 def generate(prompt: str, system_content: str | None = None) -> str:
-    messages = []
+    messages: list[dict[str, str]] = []
     if system_content:
         messages.append({"role": "system", "content": system_content})
     messages.append({"role": "user", "content": prompt})
@@ -105,7 +116,15 @@ def generate_identitiy(gender: str, name: str, dumb: bool = cost_saving_mode) ->
             .replace("[male]", name)
         )
 
-    prompt = get_prompt(gender, name)
+    prompt = get_identity_prompt(gender, name)
+    return generate(prompt)
+
+
+def generate_reflection(name: str, observationLog: ObservationLog, dumb: bool = cost_saving_mode) -> str:
+    # if dumb:
+    #    return ""
+
+    prompt = get_reflection_prompt(name, observationLog)
     return generate(prompt)
 
 
