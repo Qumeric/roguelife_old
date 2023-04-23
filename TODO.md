@@ -12,7 +12,7 @@ This is un unsorted todo list where I will write every idea I have
 
 ## Word generation
 * Probably move from dungeons to open world. See existing implementations.
-* Add trees. They should spawn apples sometimes.
+* Add gender.
 
 ## Performance
 * Handle dead entities more gracefully.

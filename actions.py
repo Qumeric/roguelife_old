@@ -117,6 +117,13 @@ class ObserveRelationshipsAction(InstantAction):
         self.entity.ai.observe_relationships()
 
 
+class ObserveIdentityAction(InstantAction):
+    """Observe the identity of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_identity()
+
+
 class ItemAction(Action):
     def __init__(self, entity: Actor, item: Item, target_xy: tuple[int, int] | None = None):
         super().__init__(entity)

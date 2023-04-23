@@ -13,6 +13,7 @@ from actions import (
     LookAroundAction,
     MeleeAction,
     MovementAction,
+    ObserveIdentityAction,
     ObserveInventoryAction,
     ObserveNeedsAction,
     ObserveStatsAction,
@@ -109,9 +110,11 @@ class IntelligentCreature(BaseAI):
 
     def observe_relationships(self) -> None:
         relationships_report = self.entity.relationships.report()
-        self.entity.observation_log.add(
-            text=f"I am thinking about who I know and observe the following: {relationships_report}"
-        )
+        self.entity.observation_log.add(text=f"My relationships are: {relationships_report}")
+
+    def observe_identity(self) -> None:
+        identity_report = self.entity.identity.report()
+        self.entity.observation_log.add(text=f"My origin is: {identity_report}")
 
 
 class Player(IntelligentCreature):
@@ -138,6 +141,8 @@ class AllyHuman(IntelligentCreature):
             return ObserveNeedsAction(self.entity).perform()
         if random.random() < 0.03:
             return ObserveInventoryAction(self.entity).perform()
+        if random.random() < 0.05:
+            return ObserveIdentityAction(self.entity).perform()
         if random.random() < 0.1:
             return LookAroundAction(self.entity).perform()
         if random.random() < 0.2:

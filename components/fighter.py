@@ -39,7 +39,7 @@ class Fighter(ActorComponent):
         self.parent.color = (191, 0, 0)
         self.parent.blocks_movement = False
         self.parent.ai = None
-        self.parent.name = f"remains of {self.parent.name}"
+        self.parent.identity.name = f"remains of {self.parent.name}"
         self.parent.render_order = RenderOrder.CORPSE
         self.observations.add(
             "I am dead!",

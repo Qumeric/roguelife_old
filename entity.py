@@ -7,12 +7,12 @@ import math
 from tcod.map import compute_fov
 import numpy as np
 
+from components.identitity import Identity
 from components.relationships import Relationships
 from entity_kind import EntityKind
 from events import AttackEvent, BaseMapEvent, MoveEvent, TickEvent
 from exceptions import Impossible
 from game_time import tick_signal
-from name_generator import generate_name
 from render_order import RenderOrder
 import constants
 
@@ -42,7 +42,7 @@ class Entity(ABC):
 
     def __init__(
         self,
-        name: str,
+        name: str | None = None,
         parent: GameMap | None = None,
         x: int = 0,
         y: int = 0,
@@ -57,9 +57,9 @@ class Entity(ABC):
         self.char = char
         self.color = color
         self.kind = kind
-        self.name = name
         self.blocks_movement = blocks_movement
         self.render_order = render_order
+        self.identity = Identity(kind, name)
         if parent:
             # If parent isn't provided now then it will be set later.
             self.parent = parent
@@ -70,6 +70,10 @@ class Entity(ABC):
     @property
     def game_map(self) -> GameMap:
         return self.parent.game_map
+
+    @property
+    def name(self) -> str:
+        return self.identity.name
 
     @property
     def full_name(self) -> str:
@@ -133,7 +137,7 @@ class Actor(Entity):
             kind=kind,
             blocks_movement=True,
             render_order=RenderOrder.ACTOR,
-            name=name or generate_name(kind),
+            name=name,
         )
 
         self.ai: BaseAI | None = ai_cls(self)
@@ -155,6 +159,8 @@ class Actor(Entity):
 
         self.relationships = relationships
         self.relationships.parent = self
+
+        self.identity.parent = self
 
         self.visible = np.full(
             (constants.map_width, constants.map_height), fill_value=False, order="F"
