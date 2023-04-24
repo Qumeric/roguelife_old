@@ -1,6 +1,8 @@
 # Roguelife
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+## Important
+**This repo was abandoned. It was replaced by two separate repos: [Trip](https://github.com/Qumeric/Trip) (engine) and [Roguelife](https://github.com/Qumeric/Roguelife) (new game repo)**
 
 Roguelike with [Generative Agents](https://arxiv.org/pdf/2304.03442.pdf).
 
