@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 import textwrap
 
-from chromadb.utils import embedding_functions
+from chromadb.utils import embedding_functions  # type: ignore
 
 from components.base_component import BaseComponent
 from constants import chroma_client
@@ -16,7 +16,7 @@ import color
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from chromadb.api.models.Collection import Collection
+    from chromadb.api.models.Collection import Collection  # type: ignore
     import tcod.console
 
     from entity import Actor

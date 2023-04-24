@@ -2,7 +2,7 @@ from datetime import timedelta
 from random import randint
 
 from components import consumable
-from components.ai import AllyHuman, HostileEnemy
+from components.ai import AutoExploreAI, HostileEnemy, RandomActingHuman
 from components.fighter import Fighter
 from components.interactable import TreeInteractable
 from components.inventory import Inventory
@@ -29,10 +29,10 @@ def create_player(x: int = 0, y: int = 0) -> IntelligentActor:
         color=(255, 255, 255),
         kind=EntityKind.PLAYER,
         name="Player",
-        ai_cls=AllyHuman,
+        ai_cls=RandomActingHuman,
         fighter=Fighter(hp=30, defense=2, power=5),
         inventory=Inventory(capacity=26),
-        needs=Needs(max_hunger=100, max_thirst=100, max_sleepiness=1000, max_lonliness=1000),
+        needs=Needs(max_hunger=500, max_thirst=500, max_sleepiness=1000, max_lonliness=1000),
         stats=Stats(age=timedelta(days=20 * 365), intelligence=10, strength=10, dexterity=10, stamina=10),
         observation_log=ObservationLog(capacity=1024),
         relationships=Relationships(),
@@ -47,12 +47,43 @@ def spawn_human(game_map: GameMap, x: int, y: int) -> IntelligentActor:
         char="h",
         color=(127, 127, 127),
         kind=EntityKind.HUMAN,
-        ai_cls=AllyHuman,
+        ai_cls=RandomActingHuman,  # FIXME: ReActAgentHuman
         fighter=Fighter(hp=10, defense=0, power=3),
         inventory=Inventory(capacity=0),
         needs=Needs(
-            max_hunger=randint(80, 120),
-            max_thirst=randint(80, 120),
+            max_hunger=randint(80, 120) * 5,
+            max_thirst=randint(80, 120) * 5,
+            max_sleepiness=randint(800, 1200),
+            max_lonliness=1000,
+        ),
+        stats=Stats(
+            age=timedelta(days=randint(15, 60) * 365),
+            intelligence=randint(1, 13),
+            strength=randint(3, 15),
+            dexterity=randint(3, 15),
+            stamina=randint(3, 15),
+        ),
+        observation_log=ObservationLog(capacity=512),
+        relationships=Relationships(),
+        signals_to_listen=visible_signals,
+    )
+    game_map.spawn(human)
+    return human
+
+
+def spawn_smart_human(game_map: GameMap, x: int, y: int) -> IntelligentActor:
+    human = IntelligentActor(
+        x=x,
+        y=y,
+        char="H",
+        color=(127, 127, 127),
+        kind=EntityKind.HUMAN,
+        ai_cls=AutoExploreAI,  # FIXME: ReActAgentHuman
+        fighter=Fighter(hp=10, defense=0, power=3),
+        inventory=Inventory(capacity=0),
+        needs=Needs(
+            max_hunger=randint(80, 120) * 5,
+            max_thirst=randint(80, 120) * 5,
             max_sleepiness=randint(800, 1200),
             max_lonliness=1000,
         ),

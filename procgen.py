@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import random
 
-import numpy as np
+from numpy.typing import NDArray
 import tcod
 import tcod.noise
 
@@ -137,7 +137,7 @@ def generate_dungeon(
     return dungeon
 
 
-def generate_heightmap(width: int, height: int, scale: float, octaves: int, lacunarity: float) -> np.ndarray:
+def generate_heightmap(width: int, height: int, scale: float, octaves: int, lacunarity: float) -> NDArray[Any]:
     shape = (width, height)
 
     noise = tcod.noise.Noise(
@@ -240,6 +240,18 @@ def generate_island(
             if random.random() * 2 > dist_to_player:
                 entity_factories.spawn_human(island, x, y)
                 number_of_allies -= 1
+
+    # TODO temporary hack
+    spawned_llm_agent = False
+    while not spawned_llm_agent:
+        x = random.randint(0, map_width - 1)
+        y = random.randint(0, map_height - 1)
+
+        if not any(entity.x == x and entity.y == y for entity in island.entities) and island.tiles[x, y][0]:
+            dist_to_player = ((player.x - x) ** 2 + (player.y - y) ** 2) / (map_width + map_height)
+            if random.random() * 0.5 > dist_to_player:
+                entity_factories.spawn_smart_human(island, x, y)
+                spawned_llm_agent = True
 
     for x in range(map_width):
         for y in range(map_height):

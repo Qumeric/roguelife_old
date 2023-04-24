@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 load_dotenv()
 openai.organization = os.getenv("OPENAI_ORG")
-openai.api_key = os.getenv("OPENAI_SK")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 promptLoader = jinja2.FileSystemLoader(searchpath="./prompts/")
 promptEnv = jinja2.Environment(loader=promptLoader)

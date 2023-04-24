@@ -121,3 +121,8 @@ class GameMap:
         names = ", ".join(map(lambda entity: entity.name, entities))
 
         return names.capitalize()
+
+    def get_neighbors(self, x: int, y: int):
+        neighbors = [(x + dx, y + dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1] if dx != 0 or dy != 0]
+        valid_neighbors = [(nx, ny) for nx, ny in neighbors if 0 <= nx < self.width and 0 <= ny < self.height]
+        return valid_neighbors

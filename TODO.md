@@ -29,8 +29,12 @@ This is un unsorted todo list where I will write every idea I have
 * Everything has backlink to parent now. Maybe it's a bad idea because it violates composition/encapsulation. And also creates typing issues occasionally.
 * Use LangChain and possibly Chroma-langchain (if it's not deprecated)?
 
+## Learning
+* Read Reflexion paper lol.
+
 ## Generative Agents
 
 ### Memory and Retrieval
 * Add importance to observations. Using LLMs would be to costly, so implement it in the game.
 * Implement relevance score. Use embeddings?
+* Maybe reuse https://python.langchain.com/en/latest/use_cases/agent_simulations/characters.html ?
