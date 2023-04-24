@@ -3,10 +3,10 @@ import traceback
 
 import tcod
 
-import color
+import constants
 import exceptions
-import setup_game
 import input_handlers
+import setup_game
 
 
 def save_game(handler: input_handlers.BaseEventHandler, filename: str) -> None:
@@ -17,12 +17,11 @@ def save_game(handler: input_handlers.BaseEventHandler, filename: str) -> None:
 
 
 def main() -> None:
-    screen_width = 80
-    screen_height = 50
+    screen_width = constants.map_width
+    screen_height = constants.map_height + 7
 
-    tileset = tcod.tileset.load_tilesheet(
-        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
-    )
+    # OLD: tileset = tcod.tileset.load_tilesheet("dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
+    tileset = tcod.tileset.load_truetype_font("whitrabt.ttf", 16, 16)
 
     handler: input_handlers.BaseEventHandler = setup_game.MainMenu()
 
@@ -30,7 +29,7 @@ def main() -> None:
         columns=screen_width,
         rows=screen_height,
         tileset=tileset,
-        title="Yet Another Roguelike Tutorial",
+        title="Roguelife",
         vsync=True,
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")
@@ -40,17 +39,12 @@ def main() -> None:
                 handler.on_render(console=root_console)
                 context.present(root_console)
 
-                try:
-                    for event in tcod.event.wait():
+                for event in tcod.event.wait():
+                    try:
                         context.convert_event(event)
                         handler = handler.handle_events(event)
-                except Exception:  # Handle exceptions in game.
-                    traceback.print_exc()  # Print error to stderr.
-                    # Then print the error to the message log.
-                    if isinstance(handler, input_handlers.EventHandler):
-                        handler.engine.message_log.add_message(
-                            traceback.format_exc(), color.error
-                        )
+                    except Exception:  # Handle exceptions in game.
+                        traceback.print_exc()  # Print error to stderr.
         except exceptions.QuitWithoutSaving:
             raise
         except SystemExit:  # Save and quit.

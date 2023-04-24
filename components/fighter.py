@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import color
-from components.base_component import BaseComponent
+from components.base_component import ActorComponent
 from render_order import RenderOrder
+import color
 
 if TYPE_CHECKING:
     from entity import Actor
 
+from game_time import current_datetime
 
-class Fighter(BaseComponent):
+
+class Fighter(ActorComponent):
     parent: Actor
 
     def __init__(self, hp: int, defense: int, power: int):
@@ -19,32 +21,30 @@ class Fighter(BaseComponent):
         self.defense = defense
         self.power = power
 
+    def update(self) -> None:
+        if current_datetime().minute % 10 == 0:
+            self.heal(1)
+
     @property
     def hp(self) -> int:
         return self._hp
 
-    @hp.setter
-    def hp(self, value: int) -> None:
+    def _set_hp(self, value: int) -> None:
         self._hp = max(0, min(value, self.max_hp))
         if self._hp == 0 and self.parent.ai:
             self.die()
 
     def die(self) -> None:
-        if self.engine.player is self.parent:
-            death_message = "You died!"
-            death_message_color = color.player_die
-        else:
-            death_message = f"{self.parent.name} is dead!"
-            death_message_color = color.enemy_die
-
         self.parent.char = "%"
         self.parent.color = (191, 0, 0)
         self.parent.blocks_movement = False
         self.parent.ai = None
-        self.parent.name = f"remains of {self.parent.name}"
+        self.parent.identity.name = f"remains of {self.parent.name}"
         self.parent.render_order = RenderOrder.CORPSE
-
-        self.engine.message_log.add_message(death_message, death_message_color)
+        self.observations.add(
+            "I am dead!",
+            color.death,
+        )
 
     def heal(self, amount: int) -> int:
         if self.hp == self.max_hp:
@@ -57,9 +57,12 @@ class Fighter(BaseComponent):
 
         amount_recovered = new_hp_value - self.hp
 
-        self.hp = new_hp_value
+        self._set_hp(new_hp_value)
 
+        self.observations.add(text=f"I healed! My HP increased by {amount_recovered} to {self.hp}", event=None)
         return amount_recovered
 
     def take_damage(self, amount: int) -> None:
-        self.hp -= amount
+        self._set_hp(self.hp - amount)
+
+        self.observations.add(text=f"I took damage! My HP decreased by {amount} to {self.hp}", event=None)

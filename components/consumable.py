@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from abc import abstractmethod
+from typing import TYPE_CHECKING
 
+from components.base_component import BaseComponent
+from exceptions import Impossible
+from input_handlers import ActionOrHandler, AreaRangedAttackHandler, SingleRangedAttackHandler
 import actions
 import color
 import components.ai
 import components.inventory
-from components.base_component import BaseComponent
-from exceptions import Impossible
-from input_handlers import (
-    ActionOrHandler,
-    AreaRangedAttackHandler,
-    SingleRangedAttackHandler,
-)
 
 if TYPE_CHECKING:
     from entity import Actor, Item
@@ -21,23 +18,39 @@ if TYPE_CHECKING:
 class Consumable(BaseComponent):
     parent: Item
 
-    def get_action(self, consumer: Actor) -> Optional[ActionOrHandler]:
+    def update(self) -> None:
+        pass
+
+    def get_action(self, consumer: Actor) -> ActionOrHandler | None:
         """Try to return the action for this item."""
         return actions.ItemAction(consumer, self.parent)
 
+    @abstractmethod
     def activate(self, action: actions.ItemAction) -> None:
         """Invoke this items ability.
 
         `action` is the context for this activation.
         """
-        raise NotImplementedError()
 
     def consume(self) -> None:
         """Remove the consumed item from its containing inventory."""
-        entity = self.parent
-        inventory = entity.parent
+        item = self.parent
+        inventory = item.parent
+
         if isinstance(inventory, components.inventory.Inventory):
-            inventory.items.remove(entity)
+            inventory.items.remove(item)
+            inventory.parent.observation_log.add(f"I consumed the {self.parent.name}")
+
+
+class Food(Consumable):
+    def __init__(self, nutrition: int, water_content: int):
+        self.nutrition = nutrition
+        self.water_content = water_content
+
+    def activate(self, action: actions.ItemAction) -> None:
+        consumer = action.entity
+        self.consume()
+        consumer.needs.eat(self)
 
 
 class ConfusionConsumable(Consumable):
@@ -45,9 +58,6 @@ class ConfusionConsumable(Consumable):
         self.number_of_turns = number_of_turns
 
     def get_action(self, consumer: Actor) -> SingleRangedAttackHandler:
-        self.engine.message_log.add_message(
-            "Select a target location.", color.needs_target
-        )
         return SingleRangedAttackHandler(
             self.engine,
             callback=lambda xy: actions.ItemAction(consumer, self.parent, xy),
@@ -64,12 +74,15 @@ class ConfusionConsumable(Consumable):
         if target is consumer:
             raise Impossible("You cannot confuse yourself!")
 
-        self.engine.message_log.add_message(
+        # TODO change to event
+        self.engine.add_observation(
             f"The eyes of the {target.name} look vacant, as it starts to stumble around!",
             color.status_effect_applied,
         )
         target.ai = components.ai.ConfusedEnemy(
-            entity=target, previous_ai=target.ai, turns_remaining=self.number_of_turns,
+            entity=target,
+            previous_ai=target.ai,
+            turns_remaining=self.number_of_turns,
         )
         self.consume()
 
@@ -80,9 +93,6 @@ class FireballDamageConsumable(Consumable):
         self.radius = radius
 
     def get_action(self, consumer: Actor) -> AreaRangedAttackHandler:
-        self.engine.message_log.add_message(
-            "Select a target location.", color.needs_target
-        )
         return AreaRangedAttackHandler(
             self.engine,
             radius=self.radius,
@@ -98,7 +108,8 @@ class FireballDamageConsumable(Consumable):
         targets_hit = False
         for actor in self.engine.game_map.actors:
             if actor.distance(*target_xy) <= self.radius:
-                self.engine.message_log.add_message(
+                # TODO change to event
+                self.engine.add_observation(
                     f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!"
                 )
                 actor.fighter.take_damage(self.damage)
@@ -115,16 +126,8 @@ class HealingConsumable(Consumable):
 
     def activate(self, action: actions.ItemAction) -> None:
         consumer = action.entity
-        amount_recovered = consumer.fighter.heal(self.amount)
-
-        if amount_recovered > 0:
-            self.engine.message_log.add_message(
-                f"You consume the {self.parent.name}, and recover {amount_recovered} HP!",
-                color.health_recovered,
-            )
-            self.consume()
-        else:
-            raise Impossible("Your health is already full.")
+        self.consume()
+        consumer.fighter.heal(self.amount)
 
 
 class LightningDamageConsumable(Consumable):
@@ -138,7 +141,7 @@ class LightningDamageConsumable(Consumable):
         closest_distance = self.maximum_range + 1.0
 
         for actor in self.engine.game_map.actors:
-            if actor is not consumer and self.parent.gamemap.visible[actor.x, actor.y]:
+            if actor is not consumer and self.parent.game_map.visible[actor.x, actor.y]:
                 distance = consumer.distance(actor.x, actor.y)
 
                 if distance < closest_distance:
@@ -146,7 +149,8 @@ class LightningDamageConsumable(Consumable):
                     closest_distance = distance
 
         if target:
-            self.engine.message_log.add_message(
+            # TODO change to event
+            self.engine.add_observation(
                 f"A lighting bolt strikes the {target.name} with a loud thunder, for {self.damage} damage!"
             )
             target.fighter.take_damage(self.damage)

@@ -15,3 +15,15 @@ venv
 
 # Saved games
 *.sav
+
+# mypy
+.mypy_cache
+
+# ruff
+.ruff_cache
+
+# chroma
+.chroma
+
+#env
+.env

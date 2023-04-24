@@ -1,25 +1,39 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
+from events import (
+    AttackEvent,
+    BuildingInteractEvent,
+    DropEvent,
+    MoveEvent,
+    attack_signal,
+    building_interact_signal,
+    drop_signal,
+    move_signal,
+)
 import color
 import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Actor, Entity, Item
+    from entity import Actor, IntelligentActor, Building, Entity, Item
+
+from abc import ABC, abstractmethod
 
 
-class Action:
+class Action(ABC):
     def __init__(self, entity: Actor) -> None:
         super().__init__()
+        self.instant = False
         self.entity = entity
 
     @property
     def engine(self) -> Engine:
         """Return the engine this action belongs to."""
-        return self.entity.gamemap.engine
+        return self.entity.game_map.engine
 
+    @abstractmethod
     def perform(self) -> None:
         """Perform this action with the objects needed to determine its scope.
 
@@ -29,14 +43,16 @@ class Action:
 
         This method must be overridden by Action subclasses.
         """
-        raise NotImplementedError()
+
+
+class IntelligentAction(Action):
+    """An action that requires an intelligent actor."""
+
+    entity: IntelligentActor
 
 
 class PickupAction(Action):
     """Pickup an item and add it to the inventory, if there is room for it."""
-
-    def __init__(self, entity: Actor):
-        super().__init__(entity)
 
     def perform(self) -> None:
         actor_location_x = self.entity.x
@@ -52,16 +68,87 @@ class PickupAction(Action):
                 item.parent = self.entity.inventory
                 inventory.items.append(item)
 
-                self.engine.message_log.add_message(f"You picked up the {item.name}!")
+                self.engine.add_observation(f"I picked up the {item.name}!")
                 return
 
         raise exceptions.Impossible("There is nothing here to pick up.")
 
 
+class InstantAction(IntelligentAction):
+    """An action that is performed instantly."""
+
+    def __init__(self, entity: IntelligentActor):
+        super().__init__(entity)
+        self.instant = True
+
+
+class ReflectAction(InstantAction):
+    """Reflect on the current situation."""
+
+    def perform(self) -> None:
+        self.entity.ai.reflect()
+
+
+class LookAroundAction(InstantAction):
+    """Look around the player and display the names of all entities in view."""
+
+    def perform(self) -> None:
+        self.entity.ai.look_around()
+
+
+class ObserveStatsAction(InstantAction):
+    """Observe the stats of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_stats()
+
+
+class ObserveNeedsAction(InstantAction):
+    """Observe the needs of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_needs()
+
+
+class ObserveInventoryAction(InstantAction):
+    """Observe the inventory of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_inventory()
+
+
+class ObserveRelationshipsAction(InstantAction):
+    """Observe the relationships of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_relationships()
+
+
+class ObserveIdentityAction(InstantAction):
+    """Observe the identity of the actor."""
+
+    def perform(self) -> None:
+        self.entity.ai.observe_identity()
+
+
+class QueryAction(InstantAction):
+    """Query the information log for information."""
+
+    def __init__(self, entity: IntelligentActor, query: str):
+        super().__init__(entity)
+        self.query = query
+
+    def perform(self) -> None:
+        closest_texts = self.entity.observation_log.query(self.query, 3)
+        observation_text = f"When thinking about {self.query}, I remember: "
+        for text in closest_texts:
+            observation_text += f"\n - {text}"
+
+        self.entity.observation_log.add(observation_text)
+
+
 class ItemAction(Action):
-    def __init__(
-        self, entity: Actor, item: Item, target_xy: Optional[Tuple[int, int]] = None
-    ):
+    def __init__(self, entity: Actor, item: Item, target_xy: tuple[int, int] | None = None):
         super().__init__(entity)
         self.item = item
         if not target_xy:
@@ -69,7 +156,7 @@ class ItemAction(Action):
         self.target_xy = target_xy
 
     @property
-    def target_actor(self) -> Optional[Actor]:
+    def target_actor(self) -> Actor | None:
         """Return the actor at this actions destination."""
         return self.engine.game_map.get_actor_at_location(*self.target_xy)
 
@@ -81,6 +168,7 @@ class ItemAction(Action):
 class DropItem(ItemAction):
     def perform(self) -> None:
         self.entity.inventory.drop(self.item)
+        drop_signal.send(DropEvent(self.entity.x, self.entity.y, self.entity, self.item))
 
 
 class WaitAction(Action):
@@ -96,22 +184,45 @@ class ActionWithDirection(Action):
         self.dy = dy
 
     @property
-    def dest_xy(self) -> Tuple[int, int]:
+    def dest_xy(self) -> tuple[int, int]:
         """Returns this actions destination."""
         return self.entity.x + self.dx, self.entity.y + self.dy
 
     @property
-    def blocking_entity(self) -> Optional[Entity]:
+    def blocking_entity(self) -> Entity | None:
         """Return the blocking entity at this actions destination.."""
         return self.engine.game_map.get_blocking_entity_at_location(*self.dest_xy)
 
     @property
-    def target_actor(self) -> Optional[Actor]:
+    def target_actor(self) -> Actor | None:
         """Return the actor at this actions destination."""
         return self.engine.game_map.get_actor_at_location(*self.dest_xy)
 
+    @property
+    def target_building(self) -> Building | None:
+        """Return the building at this actions destination."""
+        return self.engine.game_map.get_building_at_location(*self.dest_xy)
+
     def perform(self) -> None:
         raise NotImplementedError()
+
+
+class BuildingInteractAction(ActionWithDirection):
+    def perform(self) -> None:
+        target = self.target_building
+        if not target:
+            raise exceptions.Impossible("No building to interact with.")
+
+        building_interact_signal.send(
+            self,
+            event=BuildingInteractEvent(
+                self.entity.x,
+                self.entity.y,
+                self.entity,
+                target,
+            ),
+        )
+        target.interactable.interact(self)
 
 
 class MeleeAction(ActionWithDirection):
@@ -122,6 +233,16 @@ class MeleeAction(ActionWithDirection):
 
         damage = self.entity.fighter.power - target.fighter.defense
 
+        attack_signal.send(
+            self,
+            event=AttackEvent(
+                self.entity.x,
+                self.entity.y,
+                self.entity,
+                target,
+            ),
+        )
+
         attack_desc = f"{self.entity.name.capitalize()} attacks {target.name}"
         if self.entity is self.engine.player:
             attack_color = color.player_atk
@@ -129,14 +250,10 @@ class MeleeAction(ActionWithDirection):
             attack_color = color.enemy_atk
 
         if damage > 0:
-            self.engine.message_log.add_message(
-                f"{attack_desc} for {damage} hit points.", attack_color
-            )
-            target.fighter.hp -= damage
+            self.engine.add_observation(f"{attack_desc} for {damage} hit points.", attack_color)
+            target.fighter.take_damage(damage)
         else:
-            self.engine.message_log.add_message(
-                f"{attack_desc} but does no damage.", attack_color
-            )
+            self.engine.add_observation(f"{attack_desc} but does no damage.", attack_color)
 
 
 class MovementAction(ActionWithDirection):
@@ -153,13 +270,24 @@ class MovementAction(ActionWithDirection):
             # Destination is blocked by an entity.
             raise exceptions.Impossible("That way is blocked.")
 
+        move_signal.send(
+            self,
+            event=MoveEvent(
+                self.entity.x,
+                self.entity.y,
+                self.entity,
+                self.dx,
+                self.dy,
+            ),
+        )
         self.entity.move(self.dx, self.dy)
 
 
 class BumpAction(ActionWithDirection):
     def perform(self) -> None:
         if self.target_actor:
-            return MeleeAction(self.entity, self.dx, self.dy).perform()
-
+            MeleeAction(self.entity, self.dx, self.dy).perform()
+        elif self.target_building:
+            BuildingInteractAction(self.entity, self.dx, self.dy).perform()
         else:
-            return MovementAction(self.entity, self.dx, self.dy).perform()
+            MovementAction(self.entity, self.dx, self.dy).perform()

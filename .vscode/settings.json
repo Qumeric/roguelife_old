@@ -1,0 +1,11 @@
+{
+  "conventionalCommits.scopes": [
+    "Observations",
+    "World Generation",
+    "Components",
+    "Relationships",
+    "Memory and Retrieval",
+    "Reflection",
+    "Planning and Reacting"
+  ]
+}
